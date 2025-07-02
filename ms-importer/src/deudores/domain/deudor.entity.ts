@@ -1,59 +1,45 @@
-import { CuitValueObject, SituacionValueObject, MontoValueObject } from './value-objects';
+import { CuitValueObject } from './value-objects/cuit.value-object';
+import { SituacionValueObject } from './value-objects/situacion.value-object';
+import { MontoValueObject } from './value-objects/monto.value-object';
 
 export class Deudor {
-  constructor(
-    public readonly cuit: CuitValueObject,
-    public situacionMaxima: SituacionValueObject,
-    public sumaTotalPrestamos: MontoValueObject,
-  ) {}
+  private readonly _cuit: CuitValueObject;
+  private readonly _maxSituation: SituacionValueObject;
+  private readonly _totalLoans: MontoValueObject;
 
-  actualizarPrestamos(situacion: SituacionValueObject, monto: MontoValueObject): void {
-    // Actualizar situación máxima (mantener la más alta)
-    const nuevaSituacionMaxima = situacion.valor > this.situacionMaxima.valor 
-      ? situacion 
-      : this.situacionMaxima;
-    
-    this.situacionMaxima = nuevaSituacionMaxima;
-    
-    // Sumar al total de préstamos
-    this.sumaTotalPrestamos = this.sumaTotalPrestamos.sumar(monto);
+  constructor(cuit: string, situation: number, amount: number) {
+    this._cuit = new CuitValueObject(cuit);
+    this._maxSituation = new SituacionValueObject(situation);
+    this._totalLoans = new MontoValueObject(amount);
   }
 
-  // Método para obtener información resumida del deudor
-  obtenerResumen(): {
-    cuit: string;
-    tipoPersona: string;
-    situacionMaxima: number;
-    descripcionSituacion: string;
-    sumaTotalPrestamos: number;
-    montoFormateado: string;
-    esSituacionCritica: boolean;
-    esMontoSignificativo: boolean;
-  } {
-    return {
-      cuit: this.cuit.valor,
-      tipoPersona: this.cuit.obtenerTipoPersona(),
-      situacionMaxima: this.situacionMaxima.valor,
-      descripcionSituacion: this.situacionMaxima.obtenerDescripcion(),
-      sumaTotalPrestamos: this.sumaTotalPrestamos.valor,
-      montoFormateado: this.sumaTotalPrestamos.formatearComoMoneda(),
-      esSituacionCritica: this.situacionMaxima.esCritica(),
-      esMontoSignificativo: this.sumaTotalPrestamos.esSignificativo(),
-    };
+  get cuit(): string {
+    return this._cuit.valor;
   }
 
-  // Método para verificar si el deudor está en situación crítica
-  estaEnSituacionCritica(): boolean {
-    return this.situacionMaxima.esCritica();
+  get maxSituation(): number {
+    return this._maxSituation.valor;
   }
 
-  // Método para verificar si el deudor tiene préstamos significativos
-  tienePrestamosSignificativos(): boolean {
-    return this.sumaTotalPrestamos.esSignificativo();
+  get totalLoans(): number {
+    return this._totalLoans.valor;
   }
 
-  // Método para obtener el CUIT formateado
-  obtenerCuitFormateado(): string {
-    return this.cuit.formatear();
+  get formattedTotalLoans(): string {
+    return this._totalLoans.formatearComoMoneda();
+  }
+
+  updateLoans(situation: number, amount: number): void {
+    const newSituation = new SituacionValueObject(situation);
+    const newAmount = new MontoValueObject(amount);
+
+    // Actualizar la situación máxima si la nueva es mayor
+    if (newSituation.valor > this._maxSituation.valor) {
+      Object.assign(this, { _maxSituation: newSituation });
+    }
+
+    // Sumar el nuevo monto al total
+    const updatedAmount = this._totalLoans.sumar(newAmount);
+    Object.assign(this, { _totalLoans: updatedAmount });
   }
 } 

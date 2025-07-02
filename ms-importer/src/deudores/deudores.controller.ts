@@ -1,75 +1,44 @@
-import { Controller, Post, Get, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
-import { RegistrarDeudorUseCase } from './application/use-cases/registrar-deudor.usecase';
-import { ObtenerDeudorUseCase } from './application/use-cases/obtener-deudor.usecase';
+import { RegisterDeudorUseCase } from './application/use-cases/register-deudor.usecase';
+import { GetDeudorUseCase } from './application/use-cases/get-deudor.usecase';
 import { InMemoryDeudorRepository } from './infrastructure/repositories/in-memory-deudor.repository';
-import { RegistrarDeudorDto } from './dto/registrar-deudor.dto';
+import { RegisterDeudorDto } from './dto/register-deudor.dto';
+import { Controller, Post, Get, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
 
 @Controller('deudores')
 export class DeudoresController {
-  private readonly registrarUseCase = new RegistrarDeudorUseCase(new InMemoryDeudorRepository());
-  private readonly obtenerUseCase = new ObtenerDeudorUseCase(new InMemoryDeudorRepository());
+  private readonly registerUseCase = new RegisterDeudorUseCase(new InMemoryDeudorRepository());
+  private readonly getUseCase = new GetDeudorUseCase(new InMemoryDeudorRepository());
 
   @Post()
-  async registrar(@Body() body: RegistrarDeudorDto): Promise<{ ok: boolean }> {
+  async register(@Body() body: RegisterDeudorDto): Promise<{ ok: boolean }> {
     try {
-      await this.registrarUseCase.ejecutar(body.cuit, body.situacion, body.monto);
+      await this.registerUseCase.execute(body.cuit, body.situation, body.monto);
       return { ok: true };
     } catch (error) {
       throw new HttpException(
-        error.message || 'Error al registrar deudor',
+        error.message || 'Error registering deudor',
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
   @Get(':cuit')
-  async obtenerPorCuit(@Param('cuit') cuit: string) {
+  async getByCuit(@Param('cuit') cuit: string) {
     try {
-      const deudor = await this.obtenerUseCase.ejecutar(cuit);
+      const deudor = await this.getUseCase.execute(cuit);
       if (!deudor) {
-        throw new HttpException('Deudor no encontrado', HttpStatus.NOT_FOUND);
+        throw new HttpException('Deudor not found', HttpStatus.NOT_FOUND);
       }
-      
-      // Usar el método obtenerResumen que incluye información enriquecida
-      const resumen = deudor.obtenerResumen();
-      
+
       return {
-        cuit: resumen.cuit,
-        cuitFormateado: deudor.obtenerCuitFormateado(),
-        tipoPersona: resumen.tipoPersona,
-        situacionMaxima: resumen.situacionMaxima,
-        descripcionSituacion: resumen.descripcionSituacion,
-        sumaTotalPrestamos: resumen.sumaTotalPrestamos,
-        montoFormateado: resumen.montoFormateado,
-        esSituacionCritica: resumen.esSituacionCritica,
-        esMontoSignificativo: resumen.esMontoSignificativo,
+        cuit: deudor.cuit,
+        maxSituation: deudor.maxSituation,
+        totalLoans: deudor.totalLoans,
+        formattedTotalLoans: deudor.formattedTotalLoans,
       };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
       throw new HttpException(
-        error.message || 'Error al obtener deudor',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @Get(':cuit/resumen')
-  async obtenerResumen(@Param('cuit') cuit: string) {
-    try {
-      const deudor = await this.obtenerUseCase.ejecutar(cuit);
-      if (!deudor) {
-        throw new HttpException('Deudor no encontrado', HttpStatus.NOT_FOUND);
-      }
-      
-      return deudor.obtenerResumen();
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        error.message || 'Error al obtener resumen del deudor',
+        error.message || 'Error retrieving deudor',
         HttpStatus.BAD_REQUEST,
       );
     }
