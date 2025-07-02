@@ -1,0 +1,45 @@
+### Registrar un nuevo deudor
+POST http://localhost:3000/debtors
+Content-Type: application/json
+
+{
+  "cuit": "20123456789",
+  "situation": 3,
+  "amount": 150000
+}
+
+### Registrar otro deudor
+POST http://localhost:3000/debtors
+Content-Type: application/json
+
+{
+  "cuit": "30765432109",
+  "situation": 1,
+  "amount": 75000
+}
+
+### Actualizar deudor existente
+POST http://localhost:3000/debtors
+Content-Type: application/json
+
+{
+  "cuit": "20123456789",
+  "situation": 5,
+  "amount": 25000
+}
+
+### Consultar deudor por CUIT
+GET http://localhost:3000/debtors/20123456789
+
+### Consultar deudor inexistente
+GET http://localhost:3000/debtors/99999999999
+
+### Probar CUIT inválido
+POST http://localhost:3000/debtors
+Content-Type: application/json
+
+{
+  "cuit": "123",
+  "situation": 1,
+  "amount": 1000
+} 
