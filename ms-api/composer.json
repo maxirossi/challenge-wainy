@@ -7,11 +7,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "aws/aws-sdk-php": "^3.349",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "friendsofphp/php-cs-fixer": "^3.76",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.41",
@@ -54,6 +56,32 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "test:unit": [
+            "@php artisan test --testsuite=Unit"
+        ],
+        "test:feature": [
+            "@php artisan test --testsuite=Feature"
+        ],
+        "test:coverage": [
+            "@php artisan test --coverage"
+        ],
+        "lint": [
+            "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --verbose"
+        ],
+        "lint:check": [
+            "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff"
+        ],
+        "lint:fix": [
+            "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php"
+        ],
+        "quality": [
+            "@composer lint:check",
+            "@composer test"
+        ],
+        "quality:fix": [
+            "@composer lint:fix",
+            "@composer test"
         ]
     },
     "extra": {

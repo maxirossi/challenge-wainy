@@ -1,61 +1,271 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MS-API - Microservicio de API Laravel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este es el microservicio de API REST desarrollado en Laravel para el Challenge Técnico de Wayni Móvil. Se encarga de exponer endpoints para consultar información de deudores y entidades financieras procesadas por el microservicio de importación.
 
-## About Laravel
+## 🏗️ Arquitectura
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+El microservicio implementa **Domain-Driven Design (DDD)** con las siguientes capas:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```
+app/
+├── Domains/                    # Capa de dominio
+│   ├── Deudores/              # Dominio de deudores
+│   │   ├── Entities/          # Entidades del dominio
+│   │   ├── Repositories/      # Interfaces de repositorios
+│   │   ├── Services/          # Servicios de dominio
+│   │   └── ValueObjects/      # Objetos de valor (CUIT)
+│   └── EntidadesFinancieras/  # Dominio de entidades financieras
+│       ├── Entities/
+│       ├── Repositories/
+│       ├── Services/
+│       └── ValueObjects/
+├── Application/               # Capa de aplicación
+│   └── UseCases/             # Casos de uso
+├── Infrastructure/           # Capa de infraestructura
+│   └── Persistence/         # Implementaciones de repositorios
+└── Http/                    # Capa de presentación
+    └── Controllers/         # Controladores de la API
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Características
 
-## Learning Laravel
+- **Arquitectura DDD** con separación clara de responsabilidades
+- **Value Objects** para CUIT y códigos de entidad con validación
+- **API REST** con endpoints para consulta de deudores y entidades
+- **Integración con SQS** para recibir datos del microservicio de importación
+- **Base de datos MySQL** para almacenamiento persistente
+- **Jobs asíncronos** para procesamiento de mensajes SQS
+- **Health checks** y estadísticas del sistema
+- **Tests unitarios** para value objects, entidades, servicios, casos de uso, jobs y SQS
+- **Linter profesional** (PHP CS Fixer) y scripts de calidad de código
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 📋 Endpoints de la API
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Deudores
+- `GET /api/deudores/{cuit}` - Obtiene resumen de deudor por CUIT
+- `GET /api/deudores/top/{n}` - Obtiene top N deudores con mayor deuda
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Entidades Financieras
+- `GET /api/entidades/{codigo}` - Obtiene resumen de entidad por código
 
-## Laravel Sponsors
+### Sistema
+- `GET /api/health` - Health check del sistema
+- `GET /api/stats` - Estadísticas generales
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🔧 Configuración
 
-### Premium Partners
+### Variables de Entorno
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```env
+APP_NAME=WayniAPI
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
 
-## Contributing
+# Base de datos
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=wayni
+DB_USERNAME=wayni_user
+DB_PASSWORD=secret
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# AWS/SQS (LocalStack)
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+AWS_DEFAULT_REGION=us-east-1
+AWS_ENDPOINT=http://localhost:4566
+SQS_QUEUE_URL=http://localhost:4566/000000000000/wayni-deudores-queue
 
-## Code of Conduct
+# Colas
+QUEUE_CONNECTION=database
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🛠️ Instalación y Ejecución
 
-## Security Vulnerabilities
+### 1. Instalar dependencias
+```bash
+composer install
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 2. Configurar base de datos
+```bash
+cp .env.example .env
+# Editar .env con las configuraciones de tu entorno
+php artisan key:generate
+```
 
-## License
+### 3. Ejecutar migraciones y seeders
+```bash
+php artisan migrate
+php artisan db:seed
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 4. Iniciar el servidor
+```bash
+php artisan serve
+```
+
+### 5. Ejecutar listener de SQS (en otra terminal)
+```bash
+# Modo daemon (recomendado para producción)
+php artisan sqs:listen --daemon
+
+# Modo single run (para desarrollo)
+php artisan sqs:listen
+```
+
+### 6. Ejecutar worker de colas (en otra terminal)
+```bash
+php artisan queue:work
+```
+
+## 📊 Estructura de Datos
+
+### Tabla: deudores
+- `cuit` - CUIT del deudor (formato: XX-XXXXXXXX-X)
+- `codigo_entidad` - Código de la entidad financiera
+- `tipo_deuda` - Tipo de deuda (préstamo, tarjeta, etc.)
+- `monto_deuda` - Monto de la deuda
+- `situacion` - Situación del deudor (normal, irregular, vencida, morosa)
+- `fecha_vencimiento` - Fecha de vencimiento (opcional)
+- `fecha_procesamiento` - Fecha de procesamiento
+
+### Tabla: entidades_financieras
+- `codigo` - Código único de la entidad
+- `nombre` - Nombre de la entidad
+- `tipo_entidad` - Tipo (banco, financiera, cooperativa)
+- `activa` - Estado activo/inactivo
+
+## 🔄 Integración con SQS
+
+El microservicio escucha mensajes de SQS con la siguiente estructura:
+
+```json
+{
+  "type": "deudores_procesados",
+  "data": {
+    "deudores": [
+      {
+        "cuit": "20-12345678-9",
+        "codigo_entidad": "BANCO001",
+        "tipo_deuda": "préstamo personal",
+        "monto_deuda": 150000.00,
+        "situacion": "normal",
+        "fecha_vencimiento": "2024-12-31",
+        "fecha_procesamiento": "2024-01-01T00:00:00Z",
+        "nombre_entidad": "Banco de la Nación Argentina",
+        "tipo_entidad": "banco"
+      }
+    ]
+  }
+}
+```
+
+## 🧪 Testing y Calidad de Código
+
+### Tests Unitarios
+
+El proyecto incluye tests unitarios para:
+- Value Objects (`Cuit`, `CodigoEntidad`)
+- Entidades (`Deudor`)
+- Servicios de dominio
+- Casos de uso de aplicación
+- Jobs de procesamiento SQS
+- Servicio de integración SQS
+
+Puedes ejecutar los tests con:
+
+```bash
+# Todos los tests
+composer test
+
+# Solo tests unitarios
+composer test:unit
+
+# Solo tests de features
+composer test:feature
+
+# Tests con coverage
+composer test:coverage
+```
+
+### Linter y Formato de Código
+
+Se utiliza **PHP CS Fixer** para mantener el código limpio y consistente.
+
+```bash
+# Corregir automáticamente el código
+composer lint
+
+# Solo mostrar problemas de formato
+composer lint:check
+
+# Corregir y luego correr tests
+composer quality:fix
+```
+
+El archivo `.php-cs-fixer.php` contiene la configuración de reglas para el linter.
+
+### Scripts útiles en composer.json
+
+- `composer test` - Ejecuta todos los tests
+- `composer test:unit` - Ejecuta solo los tests unitarios
+- `composer test:feature` - Ejecuta solo los tests de features
+- `composer test:coverage` - Ejecuta tests con coverage
+- `composer lint` - Corrige el formato de código automáticamente
+- `composer lint:check` - Solo muestra problemas de formato
+- `composer lint:fix` - Corrige el formato de código
+- `composer quality` - Linter + tests
+- `composer quality:fix` - Linter (fix) + tests
+
+## 📝 Logs
+
+Los logs se encuentran en `storage/logs/laravel.log` y incluyen:
+- Procesamiento de mensajes SQS
+- Errores de validación
+- Operaciones de base de datos
+- Health checks
+
+## 🔍 Monitoreo
+
+- **Health Check**: `GET /api/health`
+- **Estadísticas**: `GET /api/stats`
+- **Logs**: `tail -f storage/logs/laravel.log`
+
+## 🚀 Comandos Útiles
+
+```bash
+# Verificar estado de la cola SQS
+php artisan sqs:listen
+
+# Procesar colas pendientes
+php artisan queue:work
+
+# Limpiar cache
+php artisan cache:clear
+
+# Ver rutas disponibles
+php artisan route:list
+```
+
+## 📚 Tecnologías Utilizadas
+
+- **Laravel 12** - Framework PHP
+- **MySQL** - Base de datos
+- **AWS SDK PHP** - Cliente AWS
+- **SQS** - Cola de mensajes
+- **Eloquent ORM** - Mapeo objeto-relacional
+- **PHPUnit** - Testing
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto es parte del Challenge Técnico de Wayni Móvil.
