@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wayni
+      MYSQL_USER: wayni_user
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  localstack:
+    image: localstack/localstack:3
+    container_name: localstack
+    environment:
+      - SERVICES=s3,sqs,dynamodb
+      - EDGE_PORT=4566
+      - DEFAULT_REGION=us-east-1
+      - DEBUG=1
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack:/etc/localstack/init/ready.d 
+      - localstack_data:/var/lib/localstack
+
+  ms-importer:
+    build: ./ms-importer
+    container_name: ms-importer
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./ms-importer/.env
+    depends_on:
+      - localstack
+
+  ms-api:
+    build: ./ms-api
+    container_name: ms-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./ms-api/.env
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+
+volumes:
+  mysql_data:
+  localstack_data:
