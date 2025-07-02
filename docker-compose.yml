@@ -51,8 +51,14 @@ services:
     container_name: ms-api
     ports:
       - "8000:8000"
-    env_file:
-      - ./ms-api/.env
+    environment:
+      - QUEUE_CONNECTION=sqs
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - SQS_PREFIX=http://localstack:4566/000000000000
+      - SQS_QUEUE=deudores-queue
+      - SQS_ENDPOINT=http://localstack:4566
     depends_on:
       - mysql
 

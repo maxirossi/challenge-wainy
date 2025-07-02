@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'database'),
+    'default' => 'sqs',
 
     /*
     |--------------------------------------------------------------------------
@@ -54,13 +54,13 @@ return [
 
         'sqs' => [
             'driver' => 'sqs',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'prefix' => env('SQS_PREFIX', 'https://sqs.us-east-1.amazonaws.com/your-account-id'),
-            'queue' => env('SQS_QUEUE', 'default'),
-            'suffix' => env('SQS_SUFFIX'),
-            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'after_commit' => false,
+            'key' => 'test',
+            'secret' => 'test',
+            'prefix' => 'http://localstack:4566/000000000000',
+            'queue' => 'deudores-queue',
+            'suffix' => null,
+            'region' => 'us-east-1',
+            'endpoint' => 'http://localstack:4566',
         ],
 
         'redis' => [

@@ -74,11 +74,15 @@ DB_PASSWORD=secret
 AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
 AWS_DEFAULT_REGION=us-east-1
-AWS_ENDPOINT=http://localhost:4566
-SQS_QUEUE_URL=http://localhost:4566/000000000000/wayni-deudores-queue
+AWS_ENDPOINT=http://localstack:4566
+SQS_PREFIX=http://localstack:4566/000000000000
+SQS_QUEUE=deudores-queue
+SQS_QUEUE_URL=http://localstack:4566/000000000000/deudores-queue
 
 # Colas
-QUEUE_CONNECTION=database
+QUEUE_CONNECTION=sqs
+
+# Nota: Copia estas variables a tu archivo .env para asegurar la conexión correcta con LocalStack y la cola SQS creada por el script init.sh.
 ```
 
 ## 🛠️ Instalación y Ejecución
@@ -269,3 +273,8 @@ php artisan route:list
 ## 📄 Licencia
 
 Este proyecto es parte del Challenge Técnico de Wayni Móvil.
+
+# Para procesamiento de SQS simplemente ejecuta:
+php artisan queue:work
+
+# Ya no es necesario usar el comando custom sqs:listen, Laravel se encarga de suscribirse a la cola automáticamente.

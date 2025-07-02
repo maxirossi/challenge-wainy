@@ -33,15 +33,18 @@ class EloquentDeudorRepository implements DeudorRepositoryInterface
             ->map(fn($model) => $model->toDomainEntity());
     }
     
-    public function findTopDeudores(int $limit): Collection
+    public function findTopDeudores(int $limit, ?string $situacion = null): Collection
     {
-        return DeudorModel::select('cuit')
+        $query = DeudorModel::select('cuit')
             ->selectRaw('SUM(monto_deuda) as total_deuda')
-            ->selectRaw('COUNT(*) as cantidad_prestamos')
-            ->groupBy('cuit')
+            ->selectRaw('COUNT(*) as cantidad_prestamos');
+        if ($situacion) {
+            $query->where('situacion', $situacion);
+        }
+        $query->groupBy('cuit')
             ->orderByDesc('total_deuda')
-            ->limit($limit)
-            ->get()
+            ->limit($limit);
+        return $query->get()
             ->map(function ($item) {
                 return [
                     'cuit' => $item->cuit,

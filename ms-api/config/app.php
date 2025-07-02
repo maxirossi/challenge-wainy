@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Application Service Providers...
+    |--------------------------------------------------------------------------
+    */
+    App\Providers\AppServiceProvider::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Module Providers...
+    |--------------------------------------------------------------------------
+    */
+    App\Modules\Deudores\Providers\DeudoresServiceProvider::class,
+    
 ];

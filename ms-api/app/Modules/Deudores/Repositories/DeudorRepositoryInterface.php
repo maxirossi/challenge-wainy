@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Deudores\Repositories;
+namespace App\Modules\Deudores\Repositories;
 
-use App\Domains\Deudores\Entities\Deudor;
-use App\Domains\Deudores\ValueObjects\Cuit;
-use App\Domains\EntidadesFinancieras\ValueObjects\CodigoEntidad;
+use App\Modules\Deudores\Entities\Deudor;
+use App\Modules\Deudores\ValueObjects\Cuit;
+use App\Modules\EntidadesFinancieras\ValueObjects\CodigoEntidad;
 use Illuminate\Support\Collection;
 
 interface DeudorRepositoryInterface

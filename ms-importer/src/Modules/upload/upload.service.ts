@@ -5,6 +5,7 @@ import { RegisterDeudorUseCase } from '../deudores/application/use-cases/registe
 import { ImportacionRepository } from './infrastructure/repositories/importacion.repository';
 import { DeudorImportadoRepository } from './infrastructure/repositories/deudor-importado.repository';
 import { ErrorImportacionRepository } from './infrastructure/repositories/error-importacion.repository';
+import { SQSClient } from '../../shared/infrastructure/aws/sqs/sqs.client';
 import { Readable, Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 
@@ -22,6 +23,9 @@ export interface UploadResult {
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
   private readonly CHUNK_SIZE = 64 * 1024; // 64KB chunks
+  private readonly BATCH_SIZE = 20; // Batch size for SQS
+  private readonly sqsClient = new SQSClient();
+  private readonly queueUrl = process.env.SQS_QUEUE_URL || 'http://localhost:4566/000000000000/deudores-queue';
 
   constructor(
     private readonly s3Service: S3Service,
@@ -34,17 +38,17 @@ export class UploadService {
 
   async processFile(file: any): Promise<UploadResult> {
     const startTime = Date.now();
-    this.logger.log(`Iniciando procesamiento de archivo: ${file.originalname} (${file.size} bytes)`);
+    this.logger.log(`Starting file processing: ${file.originalname} (${file.size} bytes)`);
 
-    // Generar clave única para S3
+    // Generate unique key for S3
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const s3Key = `bcra-files/${timestamp}-${file.originalname}`;
 
-    // Crear registro de importación
+    // Create import record
     const importacion = await this.importacionRepository.crear({
       nombreArchivo: file.originalname,
       s3Key,
-      contenidoArchivo: '', // No guardamos el contenido completo para archivos grandes
+      contenidoArchivo: '', // Don't save complete content for large files
       tamanoArchivo: file.size,
       tipoArchivo: file.mimetype,
     });
@@ -53,24 +57,24 @@ export class UploadService {
     let cantidadErrores = 0;
 
     try {
-      // Crear stream a partir del buffer del archivo
+      // Create stream from file buffer
       const fileStream = Readable.from(file.buffer);
       
-      // Subir archivo a S3 usando streaming
+      // Upload file to S3 using streaming
       await this.s3Service.uploadFileStream(fileStream, s3Key, file.mimetype);
-      this.logger.log(`Archivo subido a S3: ${s3Key}`);
+      this.logger.log(`File uploaded to S3: ${s3Key}`);
 
-      // Crear un nuevo stream para el procesamiento (ya que el anterior se consumió)
+      // Create new stream for processing (previous one was consumed)
       const processingStream = Readable.from(file.buffer);
       
-      // Procesar archivo línea por línea usando streaming
+      // Process file line by line using streaming
       const result = await this.processFileByStreaming(processingStream, importacion.id);
       processedLines = result.processedLines;
       cantidadErrores = result.cantidadErrores;
 
       const tiempoProcesamiento = Date.now() - startTime;
 
-      // Actualizar estadísticas de la importación
+      // Update import statistics
       await this.importacionRepository.actualizarEstadisticas(
         importacion.id,
         processedLines,
@@ -79,7 +83,7 @@ export class UploadService {
       );
 
       return {
-        message: 'Archivo procesado exitosamente',
+        message: 'File processed successfully',
         processedLines,
         s3Key,
         importacionId: importacion.id,
@@ -88,9 +92,9 @@ export class UploadService {
         tiempoProcesamiento,
       };
     } catch (error) {
-      this.logger.error(`Error procesando archivo: ${error.message}`);
+      this.logger.error(`Error processing file: ${error.message}`);
       
-      // Actualizar estado a error
+      // Update status to error
       await this.importacionRepository.actualizarEstadisticas(
         importacion.id,
         processedLines,
@@ -110,6 +114,7 @@ export class UploadService {
     let cantidadErrores = 0;
     let buffer = '';
     let lineaNumero = 0;
+    let messageBatch: string[] = []; // Buffer for SQS messages
 
     const lineProcessor = new Transform({
       objectMode: true,
@@ -118,9 +123,9 @@ export class UploadService {
           const chunkStr = chunk.toString('utf-8');
           buffer += chunkStr;
 
-          // Procesar líneas completas
+          // Process complete lines
           const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // Mantener la línea incompleta en el buffer
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
           for (const line of lines) {
             lineaNumero++;
@@ -130,14 +135,14 @@ export class UploadService {
               const parsedData = this.bcraLineParser.parseLine(line);
               
               if (parsedData) {
-                // Registrar en el módulo de deudores (lógica de negocio)
+                // Register in deudores module (business logic)
                 await this.registerDeudorUseCase.execute(
                   parsedData.numero_identificacion,
                   parseInt(parsedData.situacion, 10),
                   parsedData.prestamos_total_garantias,
                 );
 
-                // Guardar en DynamoDB para auditoría
+                // Save to DynamoDB for audit
                 await this.deudorImportadoRepository.crear({
                   cuit: parsedData.numero_identificacion,
                   importacionId,
@@ -151,22 +156,51 @@ export class UploadService {
                   lineaArchivo: lineaNumero,
                 });
 
+                // Prepare message for SQS (Laravel compatible format)
+                const messageBody = JSON.stringify({
+                  deudores: [{
+                    cuit: parsedData.numero_identificacion,
+                    situacion: parseInt(parsedData.situacion, 10),
+                    monto: parsedData.prestamos_total_garantias,
+                    codigoEntidad: parsedData.codigo_entidad,
+                    fechaInformacion: parsedData.fecha_informacion,
+                    tipoIdentificacion: parsedData.tipo_identificacion,
+                    actividad: parsedData.actividad,
+                    importacionId,
+                    lineaArchivo: lineaNumero,
+                  }]
+                });
+                
+                messageBatch.push(messageBody);
+
+                // Send batch when it reaches maximum size
+                if (messageBatch.length >= this.BATCH_SIZE) {
+                  try {
+                    await this.sendSqsBatch(messageBatch);
+                    this.logger.debug(`Batch of ${messageBatch.length} messages sent to SQS`);
+                  } catch (sqsError) {
+                    this.logger.error(`Error sending batch to SQS: ${sqsError.message}`);
+                    // Don't fail processing due to SQS error
+                  }
+                  messageBatch = []; // Clear batch
+                }
+
                 processedLines++;
               } else {
-                // Línea no válida
+                // Invalid line
                 await this.errorImportacionRepository.crear({
                   importacionId,
                   linea: lineaNumero,
-                  error: 'Línea no válida o vacía',
+                  error: 'Invalid or empty line',
                   contenidoLinea: line,
                   tipoError: 'parsing',
                 });
                 cantidadErrores++;
               }
             } catch (error) {
-              this.logger.warn(`Error procesando línea ${lineaNumero}: ${error.message}`);
+              this.logger.warn(`Error processing line ${lineaNumero}: ${error.message}`);
               
-              // Registrar error en DynamoDB
+              // Log error in DynamoDB
               await this.errorImportacionRepository.crear({
                 importacionId,
                 linea: lineaNumero,
@@ -186,7 +220,7 @@ export class UploadService {
       },
       flush: async (callback: Function) => {
         try {
-          // Procesar la última línea si hay algo en el buffer
+          // Process last line if there's something in buffer
           if (buffer.trim().length > 0) {
             lineaNumero++;
             try {
@@ -212,12 +246,29 @@ export class UploadService {
                   lineaArchivo: lineaNumero,
                 });
 
+                // Prepare message for SQS (Laravel compatible format)
+                const messageBody = JSON.stringify({
+                  deudores: [{
+                    cuit: parsedData.numero_identificacion,
+                    situacion: parseInt(parsedData.situacion, 10),
+                    monto: parsedData.prestamos_total_garantias,
+                    codigoEntidad: parsedData.codigo_entidad,
+                    fechaInformacion: parsedData.fecha_informacion,
+                    tipoIdentificacion: parsedData.tipo_identificacion,
+                    actividad: parsedData.actividad,
+                    importacionId,
+                    lineaArchivo: lineaNumero,
+                  }]
+                });
+                
+                messageBatch.push(messageBody);
+
                 processedLines++;
               } else {
                 await this.errorImportacionRepository.crear({
                   importacionId,
                   linea: lineaNumero,
-                  error: 'Línea no válida o vacía',
+                  error: 'Invalid or empty line',
                   contenidoLinea: buffer,
                   tipoError: 'parsing',
                 });
@@ -234,6 +285,18 @@ export class UploadService {
               cantidadErrores++;
             }
           }
+
+          // Send final batch if there are pending messages
+          if (messageBatch.length > 0) {
+            try {
+              await this.sendSqsBatch(messageBatch);
+              this.logger.debug(`Final batch of ${messageBatch.length} messages sent to SQS`);
+            } catch (sqsError) {
+              this.logger.error(`Error sending final batch to SQS: ${sqsError.message}`);
+              // Don't fail processing due to SQS error
+            }
+          }
+
           callback();
         } catch (error) {
           callback(error);
@@ -241,9 +304,24 @@ export class UploadService {
       },
     });
 
-    // Procesar el stream
+    // Process the stream
     await pipeline(stream, lineProcessor);
 
     return { processedLines, cantidadErrores };
+  }
+
+  /**
+   * Sends a batch of messages to SQS
+   */
+  private async sendSqsBatch(messages: string[]): Promise<void> {
+    if (messages.length === 0) return;
+
+    try {
+      await this.sqsClient.sendBatch(this.queueUrl, messages);
+      this.logger.debug(`Batch of ${messages.length} messages sent successfully to SQS`);
+    } catch (error) {
+      this.logger.error(`Error sending batch to SQS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
   }
 } 

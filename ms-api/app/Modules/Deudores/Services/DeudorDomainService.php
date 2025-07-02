@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Domains\Deudores\Services;
+namespace App\Modules\Deudores\Services;
 
-use App\Domains\Deudores\Entities\Deudor;
-use App\Domains\Deudores\Repositories\DeudorRepositoryInterface;
-use App\Domains\Deudores\ValueObjects\Cuit;
-use App\Domains\EntidadesFinancieras\ValueObjects\CodigoEntidad;
+use App\Modules\Deudores\Entities\Deudor;
+use App\Modules\Deudores\Repositories\DeudorRepositoryInterface;
+use App\Modules\Deudores\ValueObjects\Cuit;
+use App\Modules\Deudores\ValueObjects\Monto;
+use App\Modules\Deudores\ValueObjects\Situacion;
+use App\Modules\EntidadesFinancieras\ValueObjects\CodigoEntidad;
 use Illuminate\Support\Collection;
 
 class DeudorDomainService

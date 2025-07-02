@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Modules\Deudores\Infrastructure\Http\Controllers;
 
 use App\Application\UseCases\Deudores\GetDeudorByCuitUseCase;
 use App\Application\UseCases\Deudores\GetTopDeudoresUseCase;
+use App\Application\UseCases\Deudores\GetDeudoresByEntidadUseCase;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ class DeudorController extends Controller
 {
     public function __construct(
         private GetDeudorByCuitUseCase $getDeudorByCuitUseCase,
-        private GetTopDeudoresUseCase $getTopDeudoresUseCase
+        private GetTopDeudoresUseCase $getTopDeudoresUseCase,
+        private GetDeudoresByEntidadUseCase $getDeudoresByEntidadUseCase
     ) {}
 
     /**
@@ -74,13 +76,37 @@ class DeudorController extends Controller
     }
 
     /**
-     * Obtiene los top N deudores con mayor deuda
+     * Obtiene los deudores por entidad financiera
+     */
+    public function byEntidad(string $codigo): JsonResponse
+    {
+        try {
+            $resumen = $this->getDeudoresByEntidadUseCase->execute($codigo);
+            return response()->json([
+                'success' => true,
+                'data' => $resumen
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene los top N deudores con mayor deuda (opcional: filtro por situación)
      */
     public function top(Request $request, int $n): JsonResponse
     {
         try {
-            $deudores = $this->getTopDeudoresUseCase->execute($n);
-            
+            $situacion = $request->query('situacion');
+            $deudores = $this->getTopDeudoresUseCase->execute($n, $situacion);
             return response()->json([
                 'success' => true,
                 'data' => $deudores
@@ -94,6 +120,37 @@ class DeudorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor'
+            ], 500);
+        }
+    }
+
+    /**
+     * Endpoint para procesar mensajes SQS desde el script listener
+     */
+    public function processSqsMessages(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->all();
+            
+            // Validar estructura del mensaje
+            if (!isset($data['deudores']) || !is_array($data['deudores'])) {
+                throw new InvalidArgumentException('Estructura de mensaje inválida: falta array de deudores');
+            }
+
+            // Despachar el Job con los datos reales
+            \App\Jobs\ProcessSqsMessage::dispatch($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Job despachado correctamente',
+                'deudores_recibidos' => count($data['deudores'])
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ], 500);
         }
     }

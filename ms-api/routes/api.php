@@ -2,19 +2,16 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\DeudorController;
 use App\Http\Controllers\Api\EntidadFinancieraController;
 use App\Http\Controllers\Api\StatusController;
+use App\Http\Controllers\SqsDataController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
+| Aquí se registran solo rutas globales, no las de módulos.
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -25,11 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/health', [StatusController::class, 'health']);
 Route::get('/stats', [StatusController::class, 'stats']);
 
-// Rutas para deudores
-Route::prefix('deudores')->group(function () {
-    Route::get('/{cuit}', [DeudorController::class, 'show']);
-    Route::get('/top/{n}', [DeudorController::class, 'top']);
-});
+// Endpoint para procesar datos de SQS
+Route::post('/sqs/process-deudores', [SqsDataController::class, 'processDeudores']);
 
 // Rutas para entidades financieras
 Route::prefix('entidades')->group(function () {

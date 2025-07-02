@@ -5,7 +5,7 @@ set -e
 IMPORTER_URL="http://localhost:3000/upload"
 API_URL="http://localhost:8000/api"
 TEST_FILE="test-real-bcra.txt"
-CUIT="20003905528"
+CUIT="20-00390552-8"
 
 # 1. Subir archivo a ms-importer
 if [ ! -f "$TEST_FILE" ]; then
