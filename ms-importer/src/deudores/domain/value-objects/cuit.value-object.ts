@@ -1,3 +1,5 @@
+import { CuitInvalidoException } from '../exceptions';
+
 export class CuitValueObject {
   private readonly _valor: string;
 
@@ -8,16 +10,16 @@ export class CuitValueObject {
 
   private validar(valor: string): void {
     if (!valor || valor.trim().length === 0) {
-      throw new Error('El CUIT no puede estar vacío');
+      throw CuitInvalidoException.cuitVacio();
     }
 
     if (!/^\d{11}$/.test(valor)) {
-      throw new Error('El CUIT debe tener exactamente 11 dígitos numéricos');
+      throw CuitInvalidoException.formatoInvalido(valor);
     }
 
     // Validación adicional: verificar que no sea todo ceros
     if (valor === '00000000000') {
-      throw new Error('El CUIT no puede ser 00000000000');
+      throw CuitInvalidoException.cuitTodoCeros();
     }
   }
 

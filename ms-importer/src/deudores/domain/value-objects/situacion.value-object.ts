@@ -1,3 +1,5 @@
+import { SituacionInvalidaException } from '../exceptions';
+
 export class SituacionValueObject {
   private readonly _valor: number;
 
@@ -8,15 +10,15 @@ export class SituacionValueObject {
 
   private validar(valor: number): void {
     if (valor === null || valor === undefined) {
-      throw new Error('La situación no puede estar vacía');
+      throw SituacionInvalidaException.valorVacio();
     }
 
     if (!Number.isInteger(valor)) {
-      throw new Error('La situación debe ser un número entero');
+      throw SituacionInvalidaException.noEsEntero(valor);
     }
 
     if (valor < 0 || valor > 9) {
-      throw new Error('La situación debe estar entre 0 y 9');
+      throw SituacionInvalidaException.fueraDeRango(valor);
     }
   }
 

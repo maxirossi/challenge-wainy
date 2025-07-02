@@ -1,3 +1,5 @@
+import { MontoInvalidoException } from '../exceptions';
+
 export class MontoValueObject {
   private readonly _valor: number;
 
@@ -8,19 +10,19 @@ export class MontoValueObject {
 
   private validar(valor: number): void {
     if (valor === null || valor === undefined) {
-      throw new Error('El monto no puede estar vacío');
+      throw MontoInvalidoException.valorVacio();
     }
 
     if (typeof valor !== 'number' || isNaN(valor)) {
-      throw new Error('El monto debe ser un número válido');
+      throw MontoInvalidoException.noEsNumero(valor);
     }
 
     if (valor < 0) {
-      throw new Error('El monto no puede ser negativo');
+      throw MontoInvalidoException.esNegativo(valor);
     }
 
     if (valor > 999999999999.99) {
-      throw new Error('El monto excede el límite máximo permitido');
+      throw MontoInvalidoException.excedeLimite(valor);
     }
   }
 
