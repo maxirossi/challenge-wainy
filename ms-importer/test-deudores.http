@@ -28,13 +28,16 @@ Content-Type: application/json
   "monto": 25000
 }
 
-### Consultar deudor por CUIT
+### Consultar deudor por CUIT (con información enriquecida)
 GET http://localhost:3000/deudores/20123456789
+
+### Obtener resumen del deudor
+GET http://localhost:3000/deudores/20123456789/resumen
 
 ### Consultar deudor inexistente
 GET http://localhost:3000/deudores/99999999999
 
-### Probar CUIT inválido
+### Probar CUIT inválido (formato incorrecto)
 POST http://localhost:3000/deudores
 Content-Type: application/json
 
@@ -42,4 +45,44 @@ Content-Type: application/json
   "cuit": "123",
   "situacion": 1,
   "monto": 1000
+}
+
+### Probar CUIT inválido (todo ceros)
+POST http://localhost:3000/deudores
+Content-Type: application/json
+
+{
+  "cuit": "00000000000",
+  "situacion": 1,
+  "monto": 1000
+}
+
+### Probar situación inválida (fuera de rango)
+POST http://localhost:3000/deudores
+Content-Type: application/json
+
+{
+  "cuit": "20123456789",
+  "situacion": 10,
+  "monto": 1000
+}
+
+### Probar monto inválido (negativo)
+POST http://localhost:3000/deudores
+Content-Type: application/json
+
+{
+  "cuit": "20123456789",
+  "situacion": 1,
+  "monto": -1000
+}
+
+### Probar diferentes tipos de CUIT
+POST http://localhost:3000/deudores
+Content-Type: application/json
+
+{
+  "cuit": "30765432109",
+  "situacion": 0,
+  "monto": 5000000
 } 

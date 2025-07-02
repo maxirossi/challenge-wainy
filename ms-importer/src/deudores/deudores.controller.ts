@@ -29,10 +29,20 @@ export class DeudoresController {
       if (!deudor) {
         throw new HttpException('Deudor no encontrado', HttpStatus.NOT_FOUND);
       }
+      
+      // Usar el método obtenerResumen que incluye información enriquecida
+      const resumen = deudor.obtenerResumen();
+      
       return {
-        cuit: deudor.cuit,
-        situacionMaxima: deudor.situacionMaxima,
-        sumaTotalPrestamos: deudor.sumaTotalPrestamos,
+        cuit: resumen.cuit,
+        cuitFormateado: deudor.obtenerCuitFormateado(),
+        tipoPersona: resumen.tipoPersona,
+        situacionMaxima: resumen.situacionMaxima,
+        descripcionSituacion: resumen.descripcionSituacion,
+        sumaTotalPrestamos: resumen.sumaTotalPrestamos,
+        montoFormateado: resumen.montoFormateado,
+        esSituacionCritica: resumen.esSituacionCritica,
+        esMontoSignificativo: resumen.esMontoSignificativo,
       };
     } catch (error) {
       if (error instanceof HttpException) {
@@ -40,6 +50,26 @@ export class DeudoresController {
       }
       throw new HttpException(
         error.message || 'Error al obtener deudor',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get(':cuit/resumen')
+  async obtenerResumen(@Param('cuit') cuit: string) {
+    try {
+      const deudor = await this.obtenerUseCase.ejecutar(cuit);
+      if (!deudor) {
+        throw new HttpException('Deudor no encontrado', HttpStatus.NOT_FOUND);
+      }
+      
+      return deudor.obtenerResumen();
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || 'Error al obtener resumen del deudor',
         HttpStatus.BAD_REQUEST,
       );
     }
