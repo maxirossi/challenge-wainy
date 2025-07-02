@@ -10,6 +10,9 @@ src/shared/
 │   ├── logging/            # Sistema de logging con Winston
 │   ├── database/           # Configuración y conexiones de BD
 │   ├── aws/                # Clientes y configuraciones de AWS
+│   │   ├── config/         # Configuración centralizada AWS
+│   │   ├── s3/             # Cliente S3
+│   │   └── sqs/            # Cliente SQS
 │   ├── http/               # Utilidades HTTP
 │   ├── exceptions/         # Excepciones de infraestructura
 │   └── utils/              # Utilidades generales
@@ -90,6 +93,33 @@ import { ValidationException, DatabaseException } from '@/shared';
 // Lanzar excepciones específicas
 throw ValidationException.invalidInput('email', value);
 throw DatabaseException.connectionError();
+```
+
+### AWS: Cliente S3
+
+```typescript
+import { S3Client } from '@/shared/infrastructure/aws/s3/s3.client';
+
+const s3 = new S3Client();
+await s3.uploadFile('mi-bucket', 'archivo.txt', Buffer.from('contenido'));
+const buffer = await s3.downloadFile('mi-bucket', 'archivo.txt');
+const url = await s3.generatePresignedUrl('mi-bucket', 'archivo.txt');
+const files = await s3.listFiles('mi-bucket', 'carpeta/');
+await s3.deleteFile('mi-bucket', 'archivo.txt');
+```
+
+### AWS: Cliente SQS
+
+```typescript
+import { SQSClient } from '@/shared/infrastructure/aws/sqs/sqs.client';
+
+const sqs = new SQSClient();
+await sqs.sendMessage('http://localhost:4566/000000000000/mi-queue', 'Hola mundo');
+const mensajes = await sqs.receiveMessages('http://localhost:4566/000000000000/mi-queue', 5);
+for (const msg of mensajes) {
+  // Procesar msg.Body
+  await sqs.deleteMessage('http://localhost:4566/000000000000/mi-queue', msg.ReceiptHandle!);
+}
 ```
 
 ## Principios
