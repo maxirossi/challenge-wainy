@@ -1,0 +1,19 @@
+### Subir archivo BCRA
+POST http://localhost:3000/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test-bcra-file.txt"
+Content-Type: text/plain
+
+< ./test-bcra-file.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Obtener deudor por CUIT
+GET http://localhost:3000/deudores/20345678901
+
+### Obtener deudor por CUIT (segundo registro)
+GET http://localhost:3000/deudores/20345678902
+
+### Obtener deudor por CUIT (tercer registro)
+GET http://localhost:3000/deudores/20345678903 
