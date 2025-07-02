@@ -1,6 +1,6 @@
 import { CuitValueObject } from './value-objects/cuit.value-object';
-import { SituacionValueObject } from './value-objects/situacion.value-object';
 import { MontoValueObject } from './value-objects/monto.value-object';
+import { SituacionValueObject } from './value-objects/situacion.value-object';
 
 export class Deudor {
   private readonly _cuit: CuitValueObject;
@@ -42,4 +42,4 @@ export class Deudor {
     const updatedAmount = this._totalLoans.sumar(newAmount);
     Object.assign(this, { _totalLoans: updatedAmount });
   }
-} 
+}

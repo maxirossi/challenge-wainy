@@ -1,14 +1,15 @@
-import { Deudor } from '../../domain/deudor.entity';
-import { DeudorRepository } from '../../domain/deudor.repository';
+import type { Deudor } from '../../domain/deudor.entity';
+import type { DeudorRepository } from '../../domain/deudor.repository';
 
 export class InMemoryDeudorRepository implements DeudorRepository {
-  private store = new Map<string, Deudor>();
+  private readonly store = new Map<string, Deudor>();
 
-  async save(deudor: Deudor): Promise<void> {
+  save(deudor: Deudor): Promise<void> {
     this.store.set(deudor.cuit, deudor);
+    return Promise.resolve();
   }
 
-  async findByCuit(cuit: string): Promise<Deudor | null> {
-    return this.store.get(cuit) || null;
+  findByCuit(cuit: string): Promise<Deudor | null> {
+    return Promise.resolve(this.store.get(cuit) || null);
   }
-} 
+}

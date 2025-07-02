@@ -1,4 +1,4 @@
-import { CuitInvalidoException } from '../exceptions';
+import { CuitInvalidoException } from '../exceptions/cuit-invalido.exception';
 
 export class CuitValueObject {
   private readonly _valor: string;
@@ -43,7 +43,7 @@ export class CuitValueObject {
   // Método para obtener el tipo de persona (20: empresa, 23: empresa extranjera, 24: empresa, 27: empresa, 30: persona física, 33: persona física extranjera, 34: persona física)
   obtenerTipoPersona(): string {
     const tipo = this._valor.slice(0, 2);
-    const tipos = {
+    const tipos: Record<string, string> = {
       '20': 'Empresa',
       '23': 'Empresa extranjera',
       '24': 'Empresa',
@@ -52,6 +52,6 @@ export class CuitValueObject {
       '33': 'Persona física extranjera',
       '34': 'Persona física',
     };
-    return tipos[tipo] || 'Tipo desconocido';
+    return tipos[tipo] ?? 'Tipo desconocido';
   }
-} 
+}

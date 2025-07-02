@@ -1,5 +1,5 @@
+import { SituacionInvalidaException } from '../../exceptions/situacion-invalida.exception';
 import { SituacionValueObject } from '../situacion.value-object';
-import { SituacionInvalidaException } from '../../exceptions';
 
 describe('SituacionValueObject', () => {
   describe('constructor', () => {
@@ -24,33 +24,57 @@ describe('SituacionValueObject', () => {
     });
 
     it('debería lanzar excepción cuando la situación es null', () => {
-      expect(() => new SituacionValueObject(null as any)).toThrow(SituacionInvalidaException);
-      expect(() => new SituacionValueObject(null as any)).toThrow('La situación no puede estar vacía');
+      expect(() => new SituacionValueObject(null as any)).toThrow(
+        SituacionInvalidaException,
+      );
+      expect(() => new SituacionValueObject(null as any)).toThrow(
+        'La situación no puede estar vacía',
+      );
     });
 
     it('debería lanzar excepción cuando la situación es undefined', () => {
-      expect(() => new SituacionValueObject(undefined as any)).toThrow(SituacionInvalidaException);
-      expect(() => new SituacionValueObject(undefined as any)).toThrow('La situación no puede estar vacía');
+      expect(() => new SituacionValueObject(undefined as any)).toThrow(
+        SituacionInvalidaException,
+      );
+      expect(() => new SituacionValueObject(undefined as any)).toThrow(
+        'La situación no puede estar vacía',
+      );
     });
 
     it('debería lanzar excepción cuando la situación no es entero', () => {
-      expect(() => new SituacionValueObject(3.5)).toThrow(SituacionInvalidaException);
-      expect(() => new SituacionValueObject(3.5)).toThrow('La situación debe ser un número entero');
+      expect(() => new SituacionValueObject(3.5)).toThrow(
+        SituacionInvalidaException,
+      );
+      expect(() => new SituacionValueObject(3.5)).toThrow(
+        'La situación debe ser un número entero',
+      );
     });
 
     it('debería lanzar excepción cuando la situación es negativa', () => {
-      expect(() => new SituacionValueObject(-1)).toThrow(SituacionInvalidaException);
-      expect(() => new SituacionValueObject(-1)).toThrow('La situación debe estar entre 0 y 9');
+      expect(() => new SituacionValueObject(-1)).toThrow(
+        SituacionInvalidaException,
+      );
+      expect(() => new SituacionValueObject(-1)).toThrow(
+        'La situación debe estar entre 0 y 9',
+      );
     });
 
     it('debería lanzar excepción cuando la situación es mayor a 9', () => {
-      expect(() => new SituacionValueObject(10)).toThrow(SituacionInvalidaException);
-      expect(() => new SituacionValueObject(10)).toThrow('La situación debe estar entre 0 y 9');
+      expect(() => new SituacionValueObject(10)).toThrow(
+        SituacionInvalidaException,
+      );
+      expect(() => new SituacionValueObject(10)).toThrow(
+        'La situación debe estar entre 0 y 9',
+      );
     });
 
     it('debería lanzar excepción cuando la situación es NaN', () => {
-      expect(() => new SituacionValueObject(NaN)).toThrow(SituacionInvalidaException);
-      expect(() => new SituacionValueObject(NaN)).toThrow('La situación debe ser un número entero');
+      expect(() => new SituacionValueObject(NaN)).toThrow(
+        SituacionInvalidaException,
+      );
+      expect(() => new SituacionValueObject(NaN)).toThrow(
+        'La situación debe ser un número entero',
+      );
     });
   });
 
@@ -163,4 +187,4 @@ describe('SituacionValueObject', () => {
       expect(situacion.valor).toBe(3);
     });
   });
-}); 
+});

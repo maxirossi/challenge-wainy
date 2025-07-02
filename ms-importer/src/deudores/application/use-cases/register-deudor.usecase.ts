@@ -1,5 +1,5 @@
 import { Deudor } from '../../domain/deudor.entity';
-import { DeudorRepository } from '../../domain/deudor.repository';
+import type { DeudorRepository } from '../../domain/deudor.repository';
 
 export class RegisterDeudorUseCase {
   constructor(private readonly repository: DeudorRepository) {}
@@ -14,4 +14,4 @@ export class RegisterDeudorUseCase {
 
     await this.repository.save(deudor);
   }
-} 
+}

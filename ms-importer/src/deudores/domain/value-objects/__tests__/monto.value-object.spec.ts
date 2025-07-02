@@ -1,5 +1,5 @@
+import { MontoInvalidoException } from '../../exceptions/monto-invalido.exception';
 import { MontoValueObject } from '../monto.value-object';
-import { MontoInvalidoException } from '../../exceptions';
 
 describe('MontoValueObject', () => {
   describe('constructor', () => {
@@ -14,38 +14,58 @@ describe('MontoValueObject', () => {
     });
 
     it('debería crear un monto con decimales', () => {
-      const monto = new MontoValueObject(150000.50);
-      expect(monto.valor).toBe(150000.50);
+      const monto = new MontoValueObject(150000.5);
+      expect(monto.valor).toBe(150000.5);
     });
 
     it('debería lanzar excepción cuando el monto es null', () => {
-      expect(() => new MontoValueObject(null as any)).toThrow(MontoInvalidoException);
-      expect(() => new MontoValueObject(null as any)).toThrow('El monto no puede estar vacío');
+      expect(() => new MontoValueObject(null as any)).toThrow(
+        MontoInvalidoException,
+      );
+      expect(() => new MontoValueObject(null as any)).toThrow(
+        'El monto no puede estar vacío',
+      );
     });
 
     it('debería lanzar excepción cuando el monto es undefined', () => {
-      expect(() => new MontoValueObject(undefined as any)).toThrow(MontoInvalidoException);
-      expect(() => new MontoValueObject(undefined as any)).toThrow('El monto no puede estar vacío');
+      expect(() => new MontoValueObject(undefined as any)).toThrow(
+        MontoInvalidoException,
+      );
+      expect(() => new MontoValueObject(undefined as any)).toThrow(
+        'El monto no puede estar vacío',
+      );
     });
 
     it('debería lanzar excepción cuando el monto no es número', () => {
-      expect(() => new MontoValueObject('150000' as any)).toThrow(MontoInvalidoException);
-      expect(() => new MontoValueObject('150000' as any)).toThrow('El monto debe ser un número válido');
+      expect(() => new MontoValueObject('150000' as any)).toThrow(
+        MontoInvalidoException,
+      );
+      expect(() => new MontoValueObject('150000' as any)).toThrow(
+        'El monto debe ser un número válido',
+      );
     });
 
     it('debería lanzar excepción cuando el monto es NaN', () => {
       expect(() => new MontoValueObject(NaN)).toThrow(MontoInvalidoException);
-      expect(() => new MontoValueObject(NaN)).toThrow('El monto debe ser un número válido');
+      expect(() => new MontoValueObject(NaN)).toThrow(
+        'El monto debe ser un número válido',
+      );
     });
 
     it('debería lanzar excepción cuando el monto es negativo', () => {
       expect(() => new MontoValueObject(-1000)).toThrow(MontoInvalidoException);
-      expect(() => new MontoValueObject(-1000)).toThrow('El monto no puede ser negativo');
+      expect(() => new MontoValueObject(-1000)).toThrow(
+        'El monto no puede ser negativo',
+      );
     });
 
     it('debería lanzar excepción cuando el monto excede el límite', () => {
-      expect(() => new MontoValueObject(1000000000000)).toThrow(MontoInvalidoException);
-      expect(() => new MontoValueObject(1000000000000)).toThrow('El monto excede el límite máximo permitido');
+      expect(() => new MontoValueObject(1000000000000)).toThrow(
+        MontoInvalidoException,
+      );
+      expect(() => new MontoValueObject(1000000000000)).toThrow(
+        'El monto excede el límite máximo permitido',
+      );
     });
   });
 
@@ -53,35 +73,55 @@ describe('MontoValueObject', () => {
     it('debería formatear monto como moneda argentina', () => {
       const monto = new MontoValueObject(150000);
       const formateado = monto.formatearComoMoneda();
-      const esperado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(150000);
+      const esperado = new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 2,
+      }).format(150000);
       expect(formateado).toBe(esperado);
     });
 
     it('debería formatear monto con decimales', () => {
-      const monto = new MontoValueObject(150000.50);
+      const monto = new MontoValueObject(150000.5);
       const formateado = monto.formatearComoMoneda();
-      const esperado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(150000.50);
+      const esperado = new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 2,
+      }).format(150000.5);
       expect(formateado).toBe(esperado);
     });
 
     it('debería formatear monto cero', () => {
       const monto = new MontoValueObject(0);
       const formateado = monto.formatearComoMoneda();
-      const esperado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(0);
+      const esperado = new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 2,
+      }).format(0);
       expect(formateado).toBe(esperado);
     });
 
     it('debería formatear monto grande', () => {
       const monto = new MontoValueObject(999999999999.99);
       const formateado = monto.formatearComoMoneda();
-      const esperado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(999999999999.99);
+      const esperado = new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 2,
+      }).format(999999999999.99);
       expect(formateado).toBe(esperado);
     });
 
     it('debería usar el formato correcto de moneda argentina', () => {
       const monto = new MontoValueObject(150000);
       const formateado = monto.formatearComoMoneda();
-      const esperado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(150000);
+      const esperado = new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 2,
+      }).format(150000);
       expect(formateado).toBe(esperado);
     });
 
@@ -102,7 +142,7 @@ describe('MontoValueObject', () => {
       const monto1 = new MontoValueObject(100000);
       const monto2 = new MontoValueObject(50000);
       const resultado = monto1.sumar(monto2);
-      
+
       expect(resultado.valor).toBe(150000);
       expect(resultado).toBeInstanceOf(MontoValueObject);
     });
@@ -111,7 +151,7 @@ describe('MontoValueObject', () => {
       const monto1 = new MontoValueObject(100000.25);
       const monto2 = new MontoValueObject(50000.75);
       const resultado = monto1.sumar(monto2);
-      
+
       expect(resultado.valor).toBe(150001);
     });
 
@@ -119,7 +159,7 @@ describe('MontoValueObject', () => {
       const monto1 = new MontoValueObject(100000);
       const monto2 = new MontoValueObject(0);
       const resultado = monto1.sumar(monto2);
-      
+
       expect(resultado.valor).toBe(100000);
     });
   });
@@ -178,7 +218,7 @@ describe('MontoValueObject', () => {
     });
 
     it('debería retornar el valor con decimales como string', () => {
-      const monto = new MontoValueObject(150000.50);
+      const monto = new MontoValueObject(150000.5);
       expect(monto.toString()).toBe('150000.5');
     });
   });
@@ -189,4 +229,4 @@ describe('MontoValueObject', () => {
       expect(monto.valor).toBe(150000);
     });
   });
-}); 
+});

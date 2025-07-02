@@ -1,4 +1,4 @@
-import { SituacionInvalidaException } from '../exceptions';
+import { SituacionInvalidaException } from '../exceptions/situacion-invalida.exception';
 
 export class SituacionValueObject {
   private readonly _valor: number;
@@ -36,7 +36,7 @@ export class SituacionValueObject {
 
   // Método para obtener la descripción de la situación
   obtenerDescripcion(): string {
-    const descripciones = {
+    const descripciones: Record<number, string> = {
       0: 'Normal',
       1: 'Con problemas leves',
       2: 'Con problemas moderados',
@@ -48,7 +48,7 @@ export class SituacionValueObject {
       8: 'En quiebra',
       9: 'Sin información',
     };
-    return descripciones[this._valor] || 'Situación desconocida';
+    return descripciones[this._valor] ?? 'Situación desconocida';
   }
 
   // Método para verificar si la situación es crítica
@@ -60,4 +60,4 @@ export class SituacionValueObject {
   esNormal(): boolean {
     return this._valor === 0;
   }
-} 
+}

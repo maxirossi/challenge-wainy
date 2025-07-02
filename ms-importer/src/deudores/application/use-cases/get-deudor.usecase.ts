@@ -1,5 +1,5 @@
-import { Deudor } from '../../domain/deudor.entity';
-import { DeudorRepository } from '../../domain/deudor.repository';
+import type { Deudor } from '../../domain/deudor.entity';
+import type { DeudorRepository } from '../../domain/deudor.repository';
 
 export class GetDeudorUseCase {
   constructor(private readonly repository: DeudorRepository) {}
@@ -7,4 +7,4 @@ export class GetDeudorUseCase {
   async execute(cuit: string): Promise<Deudor | null> {
     return await this.repository.findByCuit(cuit);
   }
-} 
+}

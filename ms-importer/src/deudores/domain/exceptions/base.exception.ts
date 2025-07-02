@@ -2,11 +2,11 @@ export abstract class BaseException extends Error {
   constructor(
     message: string,
     public readonly codigo: string,
-    public readonly detalles?: Record<string, any>
+    public readonly detalles?: Record<string, unknown>,
   ) {
     super(message);
     this.name = this.constructor.name;
-    
+
     // Mantener el stack trace para debugging
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -18,7 +18,7 @@ export abstract class BaseException extends Error {
     nombre: string;
     mensaje: string;
     codigo: string;
-    detalles?: Record<string, any>;
+    detalles?: Record<string, unknown>;
   } {
     return {
       nombre: this.name,
@@ -27,4 +27,4 @@ export abstract class BaseException extends Error {
       detalles: this.detalles,
     };
   }
-} 
+}

@@ -1,5 +1,5 @@
+import { CuitInvalidoException } from '../../exceptions/cuit-invalido.exception';
 import { CuitValueObject } from '../cuit.value-object';
-import { CuitInvalidoException } from '../../exceptions';
 
 describe('CuitValueObject', () => {
   describe('constructor', () => {
@@ -15,32 +15,50 @@ describe('CuitValueObject', () => {
 
     it('debería lanzar excepción cuando el CUIT está vacío', () => {
       expect(() => new CuitValueObject('')).toThrow(CuitInvalidoException);
-      expect(() => new CuitValueObject('')).toThrow('El CUIT no puede estar vacío');
+      expect(() => new CuitValueObject('')).toThrow(
+        'El CUIT no puede estar vacío',
+      );
     });
 
     it('debería lanzar excepción cuando el CUIT tiene espacios en blanco', () => {
       expect(() => new CuitValueObject('   ')).toThrow(CuitInvalidoException);
-      expect(() => new CuitValueObject('   ')).toThrow('El CUIT no puede estar vacío');
+      expect(() => new CuitValueObject('   ')).toThrow(
+        'El CUIT no puede estar vacío',
+      );
     });
 
     it('debería lanzar excepción cuando el CUIT tiene formato inválido', () => {
       expect(() => new CuitValueObject('123')).toThrow(CuitInvalidoException);
-      expect(() => new CuitValueObject('123')).toThrow('El CUIT debe tener exactamente 11 dígitos numéricos');
+      expect(() => new CuitValueObject('123')).toThrow(
+        'El CUIT debe tener exactamente 11 dígitos numéricos',
+      );
     });
 
     it('debería lanzar excepción cuando el CUIT tiene letras', () => {
-      expect(() => new CuitValueObject('20ABC456789')).toThrow(CuitInvalidoException);
-      expect(() => new CuitValueObject('20ABC456789')).toThrow('El CUIT debe tener exactamente 11 dígitos numéricos');
+      expect(() => new CuitValueObject('20ABC456789')).toThrow(
+        CuitInvalidoException,
+      );
+      expect(() => new CuitValueObject('20ABC456789')).toThrow(
+        'El CUIT debe tener exactamente 11 dígitos numéricos',
+      );
     });
 
     it('debería lanzar excepción cuando el CUIT tiene más de 11 dígitos', () => {
-      expect(() => new CuitValueObject('201234567890')).toThrow(CuitInvalidoException);
-      expect(() => new CuitValueObject('201234567890')).toThrow('El CUIT debe tener exactamente 11 dígitos numéricos');
+      expect(() => new CuitValueObject('201234567890')).toThrow(
+        CuitInvalidoException,
+      );
+      expect(() => new CuitValueObject('201234567890')).toThrow(
+        'El CUIT debe tener exactamente 11 dígitos numéricos',
+      );
     });
 
     it('debería lanzar excepción cuando el CUIT es todo ceros', () => {
-      expect(() => new CuitValueObject('00000000000')).toThrow(CuitInvalidoException);
-      expect(() => new CuitValueObject('00000000000')).toThrow('El CUIT no puede ser 00000000000');
+      expect(() => new CuitValueObject('00000000000')).toThrow(
+        CuitInvalidoException,
+      );
+      expect(() => new CuitValueObject('00000000000')).toThrow(
+        'El CUIT no puede ser 00000000000',
+      );
     });
   });
 
@@ -110,4 +128,4 @@ describe('CuitValueObject', () => {
       expect(cuit.valor).toBe('20123456789');
     });
   });
-}); 
+});

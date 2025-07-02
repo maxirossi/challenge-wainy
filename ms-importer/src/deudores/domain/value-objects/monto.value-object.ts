@@ -1,4 +1,4 @@
-import { MontoInvalidoException } from '../exceptions';
+import { MontoInvalidoException } from '../exceptions/monto-invalido.exception';
 
 export class MontoValueObject {
   private readonly _valor: number;
@@ -66,4 +66,4 @@ export class MontoValueObject {
   esCero(): boolean {
     return this._valor === 0;
   }
-} 
+}
