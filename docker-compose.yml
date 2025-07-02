@@ -34,8 +34,15 @@ services:
     container_name: ms-importer
     ports:
       - "3000:3000"
-    env_file:
-      - ./ms-importer/.env
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - PORT=3000
+      - NODE_ENV=development
+      - MAX_FILE_SIZE=10737418240
+      - CHUNK_SIZE=65536
     depends_on:
       - localstack
 

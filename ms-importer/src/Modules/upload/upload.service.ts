@@ -34,6 +34,9 @@ export class UploadService {
 
   async processFile(file: any): Promise<UploadResult> {
     const startTime = Date.now();
+    this.logger.log(`Iniciando procesamiento de archivo: ${file.originalname} (${file.size} bytes)`);
+
+    // Generar clave única para S3
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const s3Key = `bcra-files/${timestamp}-${file.originalname}`;
 
@@ -50,12 +53,18 @@ export class UploadService {
     let cantidadErrores = 0;
 
     try {
+      // Crear stream a partir del buffer del archivo
+      const fileStream = Readable.from(file.buffer);
+      
       // Subir archivo a S3 usando streaming
-      await this.s3Service.uploadFileStream(file.stream, s3Key, file.mimetype);
+      await this.s3Service.uploadFileStream(fileStream, s3Key, file.mimetype);
       this.logger.log(`Archivo subido a S3: ${s3Key}`);
 
+      // Crear un nuevo stream para el procesamiento (ya que el anterior se consumió)
+      const processingStream = Readable.from(file.buffer);
+      
       // Procesar archivo línea por línea usando streaming
-      const result = await this.processFileByStreaming(file.stream, importacion.id);
+      const result = await this.processFileByStreaming(processingStream, importacion.id);
       processedLines = result.processedLines;
       cantidadErrores = result.cantidadErrores;
 
@@ -123,22 +132,22 @@ export class UploadService {
               if (parsedData) {
                 // Registrar en el módulo de deudores (lógica de negocio)
                 await this.registerDeudorUseCase.execute(
-                  parsedData.numeroIdentificacion,
-                  parsedData.situacion,
-                  parsedData.prestamosGarantias,
+                  parsedData.numero_identificacion,
+                  parseInt(parsedData.situacion, 10),
+                  parsedData.prestamos_total_garantias,
                 );
 
                 // Guardar en DynamoDB para auditoría
                 await this.deudorImportadoRepository.crear({
-                  cuit: parsedData.numeroIdentificacion,
+                  cuit: parsedData.numero_identificacion,
                   importacionId,
-                  codigoEntidad: parsedData.codigoEntidad,
-                  fechaInformacion: parsedData.fechaInformacion,
-                  tipoIdentificacion: parsedData.tipoIdentificacion,
-                  numeroIdentificacion: parsedData.numeroIdentificacion,
+                  codigoEntidad: parsedData.codigo_entidad,
+                  fechaInformacion: parsedData.fecha_informacion,
+                  tipoIdentificacion: parsedData.tipo_identificacion,
+                  numeroIdentificacion: parsedData.numero_identificacion,
                   actividad: parsedData.actividad,
-                  situacion: parsedData.situacion,
-                  prestamosGarantias: parsedData.prestamosGarantias,
+                  situacion: parseInt(parsedData.situacion, 10),
+                  prestamosGarantias: parsedData.prestamos_total_garantias,
                   lineaArchivo: lineaNumero,
                 });
 
@@ -185,21 +194,21 @@ export class UploadService {
               
               if (parsedData) {
                 await this.registerDeudorUseCase.execute(
-                  parsedData.numeroIdentificacion,
-                  parsedData.situacion,
-                  parsedData.prestamosGarantias,
+                  parsedData.numero_identificacion,
+                  parseInt(parsedData.situacion, 10),
+                  parsedData.prestamos_total_garantias,
                 );
 
                 await this.deudorImportadoRepository.crear({
-                  cuit: parsedData.numeroIdentificacion,
+                  cuit: parsedData.numero_identificacion,
                   importacionId,
-                  codigoEntidad: parsedData.codigoEntidad,
-                  fechaInformacion: parsedData.fechaInformacion,
-                  tipoIdentificacion: parsedData.tipoIdentificacion,
-                  numeroIdentificacion: parsedData.numeroIdentificacion,
+                  codigoEntidad: parsedData.codigo_entidad,
+                  fechaInformacion: parsedData.fecha_informacion,
+                  tipoIdentificacion: parsedData.tipo_identificacion,
+                  numeroIdentificacion: parsedData.numero_identificacion,
                   actividad: parsedData.actividad,
-                  situacion: parsedData.situacion,
-                  prestamosGarantias: parsedData.prestamosGarantias,
+                  situacion: parseInt(parsedData.situacion, 10),
+                  prestamosGarantias: parsedData.prestamos_total_garantias,
                   lineaArchivo: lineaNumero,
                 });
 

@@ -15,5 +15,10 @@ import { InMemoryDeudorRepository } from './infrastructure/repositories/in-memor
       useClass: InMemoryDeudorRepository,
     },
   ],
+  exports: [
+    RegisterDeudorUseCase,
+    GetDeudorUseCase,
+    'DeudorRepository',
+  ],
 })
 export class DeudoresModule {}

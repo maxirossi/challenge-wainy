@@ -6,7 +6,6 @@ import {
   BadRequestException,
   ParseFilePipe,
   MaxFileSizeValidator,
-  FileTypeValidator,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiResponse } from '@nestjs/swagger';
@@ -59,7 +58,6 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 * 1024 }), // 10GB
-          new FileTypeValidator({ fileType: '.txt' }),
         ],
       }),
     )
@@ -67,6 +65,11 @@ export class UploadController {
   ) {
     if (!file) {
       throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+
+    // Validar tipo de archivo manualmente
+    if (file.mimetype !== 'text/plain') {
+      throw new BadRequestException('Solo se permiten archivos de texto plano (.txt)');
     }
 
     return await this.uploadService.processFile(file);
