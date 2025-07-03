@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: API Deudores
+  version: 1.0.0
+  description: Documentación de las rutas principales del módulo de deudores
+servers:
+  - url: http://localhost:8000
+paths:
+  /top/{n}:
+    get:
+      summary: Obtener los n deudores con mayor monto
+      parameters:
+        - in: path
+          name: n
+          schema:
+            type: integer
+            minimum: 1
+          required: true
+          description: Cantidad de deudores a devolver
+      responses:
+        '200':
+          description: Lista de deudores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deudor'
+              example:
+                - cuit: '20123456789'
+                  nombre: 'Juan Perez'
+                  monto: 15000.50
+                  situacion: 'Moroso'
+                - cuit: '20987654321'
+                  nombre: 'Maria Gomez'
+                  monto: 12000.00
+                  situacion: 'Regular'
+  /{cuit}:
+    get:
+      summary: Obtener información de un deudor por CUIT
+      parameters:
+        - in: path
+          name: cuit
+          schema:
+            type: string
+            pattern: '^\d{11}$'
+          required: true
+          description: CUIT del deudor
+      responses:
+        '200':
+          description: Información del deudor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deudor'
+              example:
+                cuit: '20123456789'
+                nombre: 'Juan Perez'
+                monto: 15000.50
+                situacion: 'Moroso'
+        '404':
+          description: Deudor no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: 'Deudor no encontrado'
+  /process-sqs:
+    post:
+      summary: Procesar mensajes recibidos desde SQS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deudores:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Deudor'
+            example:
+              deudores:
+                - cuit: '20123456789'
+                  nombre: 'Juan Perez'
+                  monto: 15000.50
+                  situacion: 'Moroso'
+      responses:
+        '200':
+          description: Resultado del procesamiento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  procesados:
+                    type: integer
+                  errores:
+                    type: integer
+              example:
+                success: true
+                procesados: 1
+                errores: 0
+        '400':
+          description: Error en la estructura del mensaje
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+              example:
+                success: false
+                error: 'Estructura de mensaje inválida: falta array de deudores'
+components:
+  schemas:
+    Deudor:
+      type: object
+      properties:
+        cuit:
+          type: string
+          example: '20123456789'
+        nombre:
+          type: string
+          example: 'Juan Perez'
+        monto:
+          type: number
+          format: float
+          example: 15000.50
+        situacion:
+          type: string
+          example: 'Moroso' 
