@@ -48,8 +48,8 @@ try {
         'endpoint' => 'http://localstack:4566',
     ]);
 
-    $queueUrl = "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/deudores-import-queue";
-    $laravelApiUrl = "http://localhost:8000/process-sqs";
+    $queueUrl = "http://localstack:4566/000000000000/deudores-import-queue";
+    $laravelApiUrl = "http://localhost:8000/api/deudores/process-sqs";
     
     echo "Conectando a cola SQS: {$queueUrl}\n";
     echo "Enviando datos a Laravel API: {$laravelApiUrl}\n";
@@ -135,7 +135,7 @@ try {
                         // Enviar a la API de Laravel
                         echo "Enviando datos a Laravel API...\n";
                         
-                        $apiUrl = 'http://localhost:8000/process-sqs';
+                        $apiUrl = $laravelApiUrl;
                         $jsonData = json_encode($payload);
                         
                         // Log del payload que se envía

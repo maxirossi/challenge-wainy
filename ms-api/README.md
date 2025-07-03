@@ -50,7 +50,6 @@ app/
 
 ### Sistema
 - `GET /api/health` - Health check del sistema
-- `GET /api/stats` - Estadísticas generales
 
 ## 🔧 Configuración
 

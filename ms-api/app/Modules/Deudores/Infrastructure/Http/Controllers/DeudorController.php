@@ -18,20 +18,25 @@ class DeudorController extends Controller
         private GetDeudoresByEntidadUseCase $getDeudoresByEntidadUseCase
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function all(): JsonResponse
     {
-        //
-    }
+        try {
+            $deudores = \DB::table('deudores')->get();
+            return response()->json([
+                'success' => true,
+                'data' => $deudores
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error obteniendo todos los deudores', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor'
+            ], 500);
+        }
     }
 
     /**
@@ -60,22 +65,6 @@ class DeudorController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
-    /**
      * Obtiene los deudores por entidad financiera
      */
     public function byEntidad(string $codigo): JsonResponse
@@ -99,9 +88,6 @@ class DeudorController extends Controller
         }
     }
 
-    /**
-     * Obtiene los top N deudores con mayor deuda (opcional: filtro por situación)
-     */
     public function top(Request $request, int $n): JsonResponse
     {
         try {
@@ -124,9 +110,6 @@ class DeudorController extends Controller
         }
     }
 
-    /**
-     * Endpoint para procesar mensajes SQS desde el script listener
-     */
     public function processSqsMessages(Request $request): JsonResponse
     {
         try {
@@ -202,9 +185,6 @@ class DeudorController extends Controller
         }
     }
 
-    /**
-     * Procesa un deudor directamente sin usar Jobs
-     */
     private function procesarDeudorDirecto(array $deudorData): void
     {
         // Validar campos requeridos

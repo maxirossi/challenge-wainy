@@ -3,7 +3,7 @@
 namespace App\Modules\Deudores\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Modules\Deudores\Repositories\DeudorRepositoryInterface;
+use App\Domains\Deudores\Repositories\DeudorRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentDeudorRepository;
 use Illuminate\Support\Facades\Route;
 

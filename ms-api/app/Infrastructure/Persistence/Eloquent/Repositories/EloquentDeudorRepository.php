@@ -19,6 +19,12 @@ class EloquentDeudorRepository implements DeudorRepositoryInterface
         return $model->toDomainEntity();
     }
     
+    public function getAll(): Collection
+    {
+        return DeudorModel::all()
+            ->map(fn($model) => $model->toDomainEntity());
+    }
+    
     public function findByCuit(Cuit $cuit): Collection
     {
         return DeudorModel::where('cuit', $cuit->getValue())

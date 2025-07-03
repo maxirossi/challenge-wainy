@@ -7,6 +7,8 @@ Route::get('/', function () {
 });
 
 // Endpoint temporal para E2E testing - devuelve datos directamente desde la base de datos
+// COMENTADO: Esta ruta está duplicada y interfiere con las rutas del módulo de deudores
+/*
 Route::get('/api/deudores/{cuit}', function ($cuit) {
     try {
         $deudor = \DB::table('deudores')->where('cuit', $cuit)->first();
@@ -37,3 +39,4 @@ Route::get('/api/deudores/{cuit}', function ($cuit) {
         ], 500);
     }
 });
+*/

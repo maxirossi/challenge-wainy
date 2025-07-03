@@ -11,6 +11,8 @@ interface DeudorRepositoryInterface
 {
     public function save(Deudor $deudor): Deudor;
     
+    public function getAll(): Collection;
+    
     public function findByCuit(Cuit $cuit): Collection;
     
     public function findByEntidad(CodigoEntidad $codigoEntidad): Collection;

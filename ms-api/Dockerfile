@@ -16,6 +16,7 @@ RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 
 RUN composer install
-RUN cp .env.example .env && php artisan key:generate
+RUN [ ! -f .env ] && cp .env.example .env || true
+RUN php artisan key:generate
 
 CMD ["php-fpm"]

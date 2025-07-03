@@ -4,7 +4,8 @@ set -e
 # Configuración
 IMPORTER_URL="http://localhost:3000/upload"
 API_URL="http://localhost:8000/api"
-TEST_FILE="e2e-test/deudores-50mb.txt"
+TEST_FILE="small-100.txt"
+
 # test-real-bcra.txt
 CUIT="20-00390552-8"
 
