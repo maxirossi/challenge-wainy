@@ -71,6 +71,51 @@ Interactúa con:
 }
 ```
 
+#### 📊 Sistema de Logging
+
+El ms-importer incluye un sistema completo de logging que registra toda la información de las importaciones:
+
+**Archivos de Log:**
+- `logs_importer/import_{importacionId}_{fecha}.json` - Logs de importación
+- `logs_importer/errors_{fecha}.json` - Logs de errores
+
+**Información registrada:**
+- ID de importación y timestamp
+- Nombre, tamaño y tipo de archivo
+- Clave S3 donde se almacenó el archivo
+- Líneas procesadas y cantidad de errores
+- Tiempo de procesamiento
+- Estado de la importación (iniciado/completado/error)
+- Detalles de errores por línea
+
+**Endpoints de Logs:**
+```http
+GET /logs/imports                    # Todos los logs de importación
+GET /logs/imports?date=2025-07-03    # Logs filtrados por fecha
+GET /logs/errors                     # Logs de errores
+GET /logs/errors?date=2025-07-03     # Errores filtrados por fecha
+GET /logs/imports/{importacionId}    # Log específico de importación
+GET /logs/summary                    # Resumen estadístico
+```
+
+**Ejemplo de respuesta del resumen:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalImports": 5,
+    "successfulImports": 4,
+    "failedImports": 1,
+    "totalProcessedLines": 1500,
+    "totalErrors": 25,
+    "totalFileSize": 5242880,
+    "averageProcessingTime": 1250,
+    "errorLogs": 8,
+    "lastImport": { ... }
+  }
+}
+```
+
 ### 🌐 API Laravel (ms-api)
 
 #### Endpoints disponibles:
@@ -167,6 +212,16 @@ docker exec -it frontend sh
 docker-compose logs -f ms-api
 docker-compose logs -f ms-importer
 docker-compose logs -f frontend
+
+# Acceder a logs de importación
+curl http://localhost:3000/logs/summary                    # Resumen estadístico
+curl http://localhost:3000/logs/imports                    # Todos los logs
+curl http://localhost:3000/logs/imports?date=2025-07-03    # Logs por fecha
+curl http://localhost:3000/logs/errors                     # Logs de errores
+
+# Ver archivos de log dentro del contenedor
+docker exec ms-importer ls -la logs_importer/
+docker exec ms-importer cat logs_importer/import_*.json
 ```
 
 ## 🔧 Uso de AWS CLI con LocalStack

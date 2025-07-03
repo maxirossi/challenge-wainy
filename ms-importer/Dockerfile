@@ -19,6 +19,9 @@ COPY --from=builder /app/nest-cli.json ./
 COPY --from=builder /app/src ./src
 COPY .env .env
 
+# Create logs directory
+RUN mkdir -p logs_importer && chmod 755 logs_importer
+
 COPY entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]

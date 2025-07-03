@@ -5,6 +5,7 @@ import { RegisterDeudorUseCase } from '../deudores/application/use-cases/registe
 import { ImportacionRepository } from './infrastructure/repositories/importacion.repository';
 import { DeudorImportadoRepository } from './infrastructure/repositories/deudor-importado.repository';
 import { ErrorImportacionRepository } from './infrastructure/repositories/error-importacion.repository';
+import { ImportLoggerService } from './import-logger.service';
 import { SQSClient } from '../../shared/infrastructure/aws/sqs/sqs.client';
 import { Readable, Transform } from 'stream';
 import { pipeline } from 'stream/promises';
@@ -34,6 +35,7 @@ export class UploadService {
     private readonly importacionRepository: ImportacionRepository,
     private readonly deudorImportadoRepository: DeudorImportadoRepository,
     private readonly errorImportacionRepository: ErrorImportacionRepository,
+    private readonly importLoggerService: ImportLoggerService,
   ) {}
 
   async processFile(file: any): Promise<UploadResult> {
@@ -53,8 +55,21 @@ export class UploadService {
       tipoArchivo: file.mimetype,
     });
 
+    // Log import start
+    await this.importLoggerService.logImportStart({
+      importacionId: importacion.id,
+      fileName: file.originalname,
+      fileSize: file.size,
+      fileType: file.mimetype,
+      s3Key,
+      processedLines: 0,
+      cantidadErrores: 0,
+      tiempoProcesamiento: 0,
+    });
+
     let processedLines = 0;
     let cantidadErrores = 0;
+    const errors: Array<{ linea: number; error: string; contenidoLinea?: string; tipoError: string }> = [];
 
     try {
       // Create stream from file buffer
@@ -82,6 +97,19 @@ export class UploadService {
         'completado',
       );
 
+      // Log import completion
+      await this.importLoggerService.logImportComplete({
+        importacionId: importacion.id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        fileType: file.mimetype,
+        s3Key,
+        processedLines,
+        cantidadErrores,
+        tiempoProcesamiento,
+        errors: result.errors,
+      });
+
       return {
         message: 'File processed successfully',
         processedLines,
@@ -94,6 +122,8 @@ export class UploadService {
     } catch (error) {
       this.logger.error(`Error processing file: ${error.message}`);
       
+      const tiempoProcesamiento = Date.now() - startTime;
+      
       // Update status to error
       await this.importacionRepository.actualizarEstadisticas(
         importacion.id,
@@ -102,6 +132,22 @@ export class UploadService {
         'error',
       );
 
+      // Log import error
+      await this.importLoggerService.logImportError({
+        importacionId: importacion.id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        fileType: file.mimetype,
+        s3Key,
+        processedLines,
+        cantidadErrores,
+        tiempoProcesamiento,
+        errors,
+      });
+
+      // Log specific error
+      await this.importLoggerService.logError(importacion.id, error);
+
       throw error;
     }
   }
@@ -109,12 +155,13 @@ export class UploadService {
   private async processFileByStreaming(
     stream: Readable,
     importacionId: string,
-  ): Promise<{ processedLines: number; cantidadErrores: number }> {
+  ): Promise<{ processedLines: number; cantidadErrores: number; errors: Array<{ linea: number; error: string; contenidoLinea?: string; tipoError: string }> }> {
     let processedLines = 0;
     let cantidadErrores = 0;
     let buffer = '';
     let lineaNumero = 0;
     let messageBatch: string[] = []; // Buffer for SQS messages
+    const errors: Array<{ linea: number; error: string; contenidoLinea?: string; tipoError: string }> = [];
 
     const lineProcessor = new Transform({
       objectMode: true,
@@ -189,6 +236,14 @@ export class UploadService {
                 processedLines++;
               } else {
                 // Invalid line
+                const error = {
+                  linea: lineaNumero,
+                  error: 'Invalid or empty line',
+                  contenidoLinea: line,
+                  tipoError: 'parsing',
+                };
+                errors.push(error);
+                
                 await this.errorImportacionRepository.crear({
                   importacionId,
                   linea: lineaNumero,
@@ -200,6 +255,14 @@ export class UploadService {
               }
             } catch (error) {
               this.logger.warn(`Error processing line ${lineaNumero}: ${error.message}`);
+              
+              const errorInfo = {
+                linea: lineaNumero,
+                error: error.message,
+                contenidoLinea: line,
+                tipoError: 'parsing',
+              };
+              errors.push(errorInfo);
               
               // Log error in DynamoDB
               await this.errorImportacionRepository.crear({
@@ -266,6 +329,14 @@ export class UploadService {
 
                 processedLines++;
               } else {
+                const error = {
+                  linea: lineaNumero,
+                  error: 'Invalid or empty line',
+                  contenidoLinea: buffer,
+                  tipoError: 'parsing',
+                };
+                errors.push(error);
+                
                 await this.errorImportacionRepository.crear({
                   importacionId,
                   linea: lineaNumero,
@@ -276,6 +347,14 @@ export class UploadService {
                 cantidadErrores++;
               }
             } catch (error) {
+              const errorInfo = {
+                linea: lineaNumero,
+                error: error.message,
+                contenidoLinea: buffer,
+                tipoError: 'parsing',
+              };
+              errors.push(errorInfo);
+              
               await this.errorImportacionRepository.crear({
                 importacionId,
                 linea: lineaNumero,
@@ -308,7 +387,7 @@ export class UploadService {
     // Process the stream
     await pipeline(stream, lineProcessor);
 
-    return { processedLines, cantidadErrores };
+    return { processedLines, cantidadErrores, errors };
   }
 
   /**

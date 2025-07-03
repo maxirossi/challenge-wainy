@@ -1,0 +1,17 @@
+### Obtener logs de importaciones
+GET http://localhost:3000/logs/imports
+
+### Obtener logs de importaciones filtrados por fecha
+GET http://localhost:3000/logs/imports?date=2025-07-03
+
+### Obtener logs de errores
+GET http://localhost:3000/logs/errors
+
+### Obtener logs de errores filtrados por fecha
+GET http://localhost:3000/logs/errors?date=2025-07-03
+
+### Obtener log de importación específica
+GET http://localhost:3000/logs/imports/{{importacionId}}
+
+### Obtener resumen de logs
+GET http://localhost:3000/logs/summary 
