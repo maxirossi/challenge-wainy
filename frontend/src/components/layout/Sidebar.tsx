@@ -8,7 +8,10 @@ import { cn } from '@/lib/utils'
 const routes = [
   { name: 'Home', path: '/' },
   { name: 'Deudores', path: '/deudores' },
-  { name: 'About', path: '/about' }
+  { name: 'Buscar por CUIT', path: '/about' },
+  { name: 'Top', path: '/top' },
+  { name: 'Entidades', path: '/entidades' },
+  { name: 'Estadísticas', path: '/stats' }
 ]
 
 export function Sidebar() {

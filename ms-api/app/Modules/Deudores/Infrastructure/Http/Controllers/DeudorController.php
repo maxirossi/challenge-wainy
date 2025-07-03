@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
+use App\Models\Deudor;
 
 class DeudorController extends Controller
 {
@@ -18,13 +19,30 @@ class DeudorController extends Controller
         private GetDeudoresByEntidadUseCase $getDeudoresByEntidadUseCase
     ) {}
 
-    public function all(): JsonResponse
+    public function all(Request $request): JsonResponse
     {
         try {
-            $deudores = \DB::table('deudores')->get();
+            $perPage = (int) $request->query('per_page', 20);
+            $page = (int) $request->query('page', 1);
+            $offset = ($page - 1) * $perPage;
+
+            // Usar SQL raw para asegurar que funcione
+            $total = \DB::select('SELECT COUNT(*) as total FROM deudores')[0]->total;
+            $deudores = \DB::select("
+                SELECT * FROM deudores 
+                ORDER BY id DESC 
+                LIMIT ? OFFSET ?
+            ", [$perPage, $offset]);
+
+            $lastPage = (int) ceil($total / $perPage);
+
             return response()->json([
                 'success' => true,
-                'data' => $deudores
+                'data' => $deudores,
+                'current_page' => $page,
+                'last_page' => $lastPage,
+                'per_page' => $perPage,
+                'total' => $total,
             ]);
         } catch (\Exception $e) {
             \Log::error('Error obteniendo todos los deudores', [

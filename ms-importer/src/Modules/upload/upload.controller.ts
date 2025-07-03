@@ -6,6 +6,7 @@ import {
   BadRequestException,
   ParseFilePipe,
   MaxFileSizeValidator,
+  Header,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiResponse } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post()
+  @Header('Content-Type', 'application/json')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Subir archivo BCRA',
