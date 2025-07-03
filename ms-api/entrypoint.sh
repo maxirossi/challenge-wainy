@@ -29,11 +29,29 @@ wait_for_mysql
 echo "🔧 Ejecutando migraciones..."
 php artisan migrate --force
 
-echo "🚀 Iniciando múltiples workers de Laravel para mejor rendimiento..."
-# Iniciar múltiples workers en paralelo para mejor throughput
-php artisan queue:work --daemon --sleep=3 --tries=3 --max-time=3600 --memory=512 --timeout=300 &
-php artisan queue:work --daemon --sleep=3 --tries=3 --max-time=3600 --memory=512 --timeout=300 &
-php artisan queue:work --daemon --sleep=3 --tries=3 --max-time=3600 --memory=512 --timeout=300 &
+echo "🔧 Ejecutando seeders..."
+php artisan db:seed --force
 
-echo "🚀 Iniciando Laravel en modo serve..."
+echo "🚀 Iniciando servidor web..."
+echo "📡 Iniciando PHP SQS Listener en background..."
+
+# Iniciar el listener PHP de SQS en background
+/var/www/wait-and-start-listener.sh &
+LISTENER_PID=$!
+
+echo "✅ PHP SQS Listener iniciado con PID: $LISTENER_PID"
+
+# Función para limpiar al salir
+cleanup() {
+    echo "🛑 Deteniendo PHP SQS Listener..."
+    if [ ! -z "$LISTENER_PID" ]; then
+        kill $LISTENER_PID 2>/dev/null || true
+    fi
+    exit 0
+}
+
+# Capturar señales para limpiar
+trap cleanup SIGTERM SIGINT
+
+echo "🌐 Iniciando servidor web en puerto 8000..."
 php artisan serve --host=0.0.0.0 --port=8000

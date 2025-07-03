@@ -24,6 +24,10 @@ class SqsDataController extends Controller
      */
     public function processDeudores(Request $request): JsonResponse
     {
+        // Loguear el request recibido
+        \Log::info('SqsDataController - Mensaje recibido en processDeudores', ['data' => $request->all()]);
+        file_put_contents('/tmp/sqs_data_controller.log', "Request recibido: " . print_r($request->all(), true) . "\n", FILE_APPEND);
+
         try {
             $data = $request->all();
             

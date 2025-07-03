@@ -2,12 +2,10 @@
 
 namespace Tests\Unit\Services;
 
-use App\Jobs\ProcessSqsMessage;
 use App\Services\SqsService;
 use Aws\Sqs\SqsClient;
 use Aws\Result;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Queue;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 
@@ -88,8 +86,6 @@ class SqsServiceTest extends TestCase
 
     public function test_process_message_with_deudores_procesados_type(): void
     {
-        Queue::fake();
-
         $message = [
             'MessageId' => 'test-123',
             'ReceiptHandle' => 'receipt-handle-123',
@@ -118,8 +114,6 @@ class SqsServiceTest extends TestCase
             ]);
 
         $this->invokePrivateMethod($this->sqsService, 'processMessage', [$message]);
-
-        Queue::assertPushed(ProcessSqsMessage::class);
     }
 
     public function test_process_message_with_archivo_procesado_type(): void
@@ -231,8 +225,6 @@ class SqsServiceTest extends TestCase
 
     public function test_handle_deudores_processed_with_valid_data(): void
     {
-        Queue::fake();
-
         $messageData = [
             'data' => [
                 'deudores' => [
@@ -248,10 +240,6 @@ class SqsServiceTest extends TestCase
         ];
 
         $this->invokePrivateMethod($this->sqsService, 'handleDeudoresProcessed', [$messageData]);
-
-        Queue::assertPushed(ProcessSqsMessage::class, function ($job) use ($messageData) {
-            return $job->messageData === $messageData['data'];
-        });
     }
 
     public function test_handle_deudores_processed_with_missing_data(): void

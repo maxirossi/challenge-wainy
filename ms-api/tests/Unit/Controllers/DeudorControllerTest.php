@@ -6,10 +6,8 @@ use App\Modules\Deudores\Infrastructure\Http\Controllers\DeudorController;
 use App\Application\UseCases\Deudores\GetDeudorByCuitUseCase;
 use App\Application\UseCases\Deudores\GetTopDeudoresUseCase;
 use App\Application\UseCases\Deudores\GetDeudoresByEntidadUseCase;
-use App\Jobs\ProcessSqsMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\TestCase;
 use Mockery;
 use InvalidArgumentException;
@@ -44,8 +42,6 @@ class DeudorControllerTest extends TestCase
 
     public function test_process_sqs_messages_with_valid_data(): void
     {
-        Queue::fake();
-
         $validData = [
             'deudores' => [
                 [
@@ -71,18 +67,12 @@ class DeudorControllerTest extends TestCase
         
         $responseData = json_decode($response->getContent(), true);
         $this->assertTrue($responseData['success']);
-        $this->assertEquals('Job despachado correctamente', $responseData['message']);
+        $this->assertEquals('Datos procesados correctamente', $responseData['message']);
         $this->assertEquals(1, $responseData['deudores_recibidos']);
-
-        Queue::assertPushed(ProcessSqsMessage::class, function ($job) use ($validData) {
-            return $job->messageData === $validData;
-        });
     }
 
     public function test_process_sqs_messages_with_multiple_deudores(): void
     {
-        Queue::fake();
-
         $validData = [
             'deudores' => [
                 [
@@ -114,8 +104,6 @@ class DeudorControllerTest extends TestCase
         $responseData = json_decode($response->getContent(), true);
         $this->assertTrue($responseData['success']);
         $this->assertEquals(2, $responseData['deudores_recibidos']);
-
-        Queue::assertPushed(ProcessSqsMessage::class);
     }
 
     public function test_process_sqs_messages_throws_exception_for_invalid_structure(): void

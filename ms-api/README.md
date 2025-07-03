@@ -112,16 +112,8 @@ php artisan serve
 
 ### 5. Ejecutar listener de SQS (en otra terminal)
 ```bash
-# Modo daemon (recomendado para producción)
-php artisan sqs:listen --daemon
-
-# Modo single run (para desarrollo)
-php artisan sqs:listen
-```
-
-### 6. Ejecutar worker de colas (en otra terminal)
-```bash
-php artisan queue:work
+# Usar el script PHP personalizado para procesar mensajes SQS
+php /var/www/sqs-listener.php
 ```
 
 ## 📊 Estructura de Datos
@@ -143,26 +135,23 @@ php artisan queue:work
 
 ## 🔄 Integración con SQS
 
-El microservicio escucha mensajes de SQS con la siguiente estructura:
+El microservicio recibe mensajes JSON directos de SQS con la siguiente estructura:
 
 ```json
 {
-  "type": "deudores_procesados",
-  "data": {
-    "deudores": [
-      {
-        "cuit": "20-12345678-9",
-        "codigo_entidad": "BANCO001",
-        "tipo_deuda": "préstamo personal",
-        "monto_deuda": 150000.00,
-        "situacion": "normal",
-        "fecha_vencimiento": "2024-12-31",
-        "fecha_procesamiento": "2024-01-01T00:00:00Z",
-        "nombre_entidad": "Banco de la Nación Argentina",
-        "tipo_entidad": "banco"
-      }
-    ]
-  }
+  "deudores": [
+    {
+      "cuit": "20-12345678-9",
+      "codigo_entidad": "BANCO001",
+      "tipo_deuda": "préstamo personal",
+      "monto_deuda": 150000.00,
+      "situacion": "normal",
+      "fecha_vencimiento": "2024-12-31",
+      "fecha_procesamiento": "2024-01-01T00:00:00Z",
+      "nombre_entidad": "Banco de la Nación Argentina",
+      "tipo_entidad": "banco"
+    }
+  ]
 }
 ```
 
@@ -175,7 +164,6 @@ El proyecto incluye tests unitarios para:
 - Entidades (`Deudor`)
 - Servicios de dominio
 - Casos de uso de aplicación
-- Jobs de procesamiento SQS
 - Servicio de integración SQS
 
 Puedes ejecutar los tests con:
@@ -241,10 +229,7 @@ Los logs se encuentran en `storage/logs/laravel.log` y incluyen:
 
 ```bash
 # Verificar estado de la cola SQS
-php artisan sqs:listen
-
-# Procesar colas pendientes
-php artisan queue:work
+php /var/www/sqs-listener.php
 
 # Limpiar cache
 php artisan cache:clear
@@ -275,6 +260,6 @@ php artisan route:list
 Este proyecto es parte del Challenge Técnico de Wayni Móvil.
 
 # Para procesamiento de SQS simplemente ejecuta:
-php artisan queue:work
+php /var/www/sqs-listener.php
 
-# Ya no es necesario usar el comando custom sqs:listen, Laravel se encarga de suscribirse a la cola automáticamente.
+# El script procesa mensajes JSON directos de la cola SQS y los envía al endpoint /process-sqs de Laravel.

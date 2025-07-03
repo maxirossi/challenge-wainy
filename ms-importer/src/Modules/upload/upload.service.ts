@@ -25,7 +25,7 @@ export class UploadService {
   private readonly CHUNK_SIZE = 64 * 1024; // 64KB chunks
   private readonly BATCH_SIZE = 20; // Batch size for SQS
   private readonly sqsClient = new SQSClient();
-  private readonly queueUrl = process.env.SQS_QUEUE_URL || 'http://localhost:4566/000000000000/deudores-queue';
+  private readonly queueUrl = 'http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/deudores-import-queue';
 
   constructor(
     private readonly s3Service: S3Service,
@@ -173,16 +173,17 @@ export class UploadService {
                 
                 messageBatch.push(messageBody);
 
-                // Send batch when it reaches maximum size
-                if (messageBatch.length >= this.BATCH_SIZE) {
+                this.logger.log(`[SQS] Mensaje agregado al batch (${messageBatch.length}/${this.BATCH_SIZE})`);
+
+                // Forzar envío inmediato si hay menos de 20 mensajes (para debug):
+                if (messageBatch.length > 0) {
                   try {
                     await this.sendSqsBatch(messageBatch);
-                    this.logger.debug(`Batch of ${messageBatch.length} messages sent to SQS`);
+                    this.logger.log(`[SQS] Batch de ${messageBatch.length} mensajes enviado a SQS (forzado)`);
                   } catch (sqsError) {
-                    this.logger.error(`Error sending batch to SQS: ${sqsError.message}`);
-                    // Don't fail processing due to SQS error
+                    this.logger.error(`[SQS] Error enviando batch a SQS: ${sqsError.message}`);
                   }
-                  messageBatch = []; // Clear batch
+                  messageBatch = [];
                 }
 
                 processedLines++;

@@ -1,0 +1,199 @@
+openapi: 3.0.0
+info:
+  title: API de Consulta de Deudores
+  version: 1.0.0
+  description: |
+    API para consultar información de deudores y entidades financieras.
+servers:
+  - url: http://localhost:8000/api
+paths:
+  /deudores/{cuit}:
+    get:
+      summary: Obtener deudor por CUIT
+      parameters:
+        - in: path
+          name: cuit
+          required: true
+          schema:
+            type: string
+          description: CUIT del deudor (ej: 20-12345678-9)
+      responses:
+        '200':
+          description: Resumen del deudor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      cuit:
+                        type: string
+                      total_deuda:
+                        type: number
+                      situacion:
+                        type: string
+                      tipo_deuda:
+                        type: string
+                      codigo_entidad:
+                        type: string
+                      fecha_procesamiento:
+                        type: string
+                        format: date-time
+        '400':
+          description: CUIT inválido
+        '404':
+          description: Deudor no encontrado
+
+  /deudores/top/{n}:
+    get:
+      summary: Obtener top N deudores con mayor suma de préstamos
+      parameters:
+        - in: path
+          name: n
+          required: true
+          schema:
+            type: integer
+          description: Número de deudores a devolver
+        - in: query
+          name: situacion
+          required: false
+          schema:
+            type: string
+          description: Filtrar por situación (ej: normal, irregular)
+      responses:
+        '200':
+          description: Lista de deudores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cuit:
+                          type: string
+                        total_deuda:
+                          type: number
+                        situacion:
+                          type: string
+                        tipo_deuda:
+                          type: string
+                        codigo_entidad:
+                          type: string
+        '400':
+          description: Parámetros inválidos
+
+  /entidades/{codigo}:
+    get:
+      summary: Obtener entidad financiera por código
+      parameters:
+        - in: path
+          name: codigo
+          required: true
+          schema:
+            type: string
+          description: Código de la entidad financiera (ej: BANCO001)
+      responses:
+        '200':
+          description: Resumen de la entidad financiera
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      codigo:
+                        type: string
+                      nombre:
+                        type: string
+                      activa:
+                        type: boolean
+                      tipo:
+                        type: string
+        '400':
+          description: Código inválido
+        '404':
+          description: Entidad no encontrada
+
+  /deudores/by-entidad/{codigo}:
+    get:
+      summary: Obtener deudores por código de entidad financiera
+      parameters:
+        - in: path
+          name: codigo
+          required: true
+          schema:
+            type: string
+          description: Código de la entidad financiera
+      responses:
+        '200':
+          description: Lista de deudores de la entidad
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cuit:
+                          type: string
+                        total_deuda:
+                          type: number
+                        situacion:
+                          type: string
+                        tipo_deuda:
+                          type: string
+                        codigo_entidad:
+                          type: string
+        '400':
+          description: Código inválido
+        '404':
+          description: Entidad no encontrada
+
+components:
+  schemas:
+    Deudor:
+      type: object
+      properties:
+        cuit:
+          type: string
+        total_deuda:
+          type: number
+        situacion:
+          type: string
+        tipo_deuda:
+          type: string
+        codigo_entidad:
+          type: string
+        fecha_procesamiento:
+          type: string
+          format: date-time
+    EntidadFinanciera:
+      type: object
+      properties:
+        codigo:
+          type: string
+        nombre:
+          type: string
+        activa:
+          type: boolean
+        tipo:
+          type: string 

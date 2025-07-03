@@ -130,28 +130,128 @@ class DeudorController extends Controller
     public function processSqsMessages(Request $request): JsonResponse
     {
         try {
-            $data = $request->all();
+            // Debug: Log the raw request data
+            \Log::info('DeudorController - Raw request data', [
+                'all' => $request->all(),
+                'json' => $request->json()->all(),
+                'content_type' => $request->header('Content-Type'),
+                'body' => $request->getContent(),
+                'input' => $request->input()
+            ]);
+            
+            // Try different ways to get the data
+            $data = $request->json()->all();
+            if (empty($data)) {
+                $data = $request->all();
+            }
+            
+            \Log::info('DeudorController - Processed data', ['data' => $data]);
             
             // Validar estructura del mensaje
             if (!isset($data['deudores']) || !is_array($data['deudores'])) {
                 throw new InvalidArgumentException('Estructura de mensaje inválida: falta array de deudores');
             }
 
-            // Despachar el Job con los datos reales
-            \App\Jobs\ProcessSqsMessage::dispatch($data);
+            // Procesar directamente sin usar Jobs
+            $deudoresProcesados = 0;
+            $errores = [];
+
+            foreach ($data['deudores'] as $deudorData) {
+                try {
+                    $this->procesarDeudorDirecto($deudorData);
+                    $deudoresProcesados++;
+                } catch (\Exception $e) {
+                    $errores[] = [
+                        'cuit' => $deudorData['cuit'] ?? 'desconocido',
+                        'error' => $e->getMessage()
+                    ];
+                    \Log::error('Error procesando deudor', [
+                        'cuit' => $deudorData['cuit'] ?? 'desconocido',
+                        'error' => $e->getMessage(),
+                        'data' => $deudorData
+                    ]);
+                }
+            }
+
+            \Log::info('Procesamiento de mensaje SQS completado', [
+                'deudores_procesados' => $deudoresProcesados,
+                'errores' => count($errores),
+                'total_deudores' => count($data['deudores'])
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Job despachado correctamente',
-                'deudores_recibidos' => count($data['deudores'])
+                'message' => 'Datos procesados correctamente',
+                'deudores_recibidos' => count($data['deudores']),
+                'deudores_procesados' => $deudoresProcesados,
+                'errores' => count($errores),
+                'detalle_errores' => $errores
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('DeudorController - Error processing SQS message', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ], 500);
         }
+    }
+
+    /**
+     * Procesa un deudor directamente sin usar Jobs
+     */
+    private function procesarDeudorDirecto(array $deudorData): void
+    {
+        // Validar campos requeridos
+        $camposRequeridos = ['cuit', 'codigoEntidad', 'monto', 'situacion'];
+        foreach ($camposRequeridos as $campo) {
+            if (!isset($deudorData[$campo])) {
+                throw new InvalidArgumentException("Campo requerido faltante: {$campo}");
+            }
+        }
+
+        // Crear Value Objects
+        $cuit = new \App\Domains\Deudores\ValueObjects\Cuit($deudorData['cuit']);
+        $codigoEntidad = new \App\Domains\EntidadesFinancieras\ValueObjects\CodigoEntidad($deudorData['codigoEntidad']);
+
+        // Verificar si la entidad financiera existe, si no, crearla
+        $entidadRepository = app(\App\Domains\EntidadesFinancieras\Repositories\EntidadFinancieraRepositoryInterface::class);
+        $entidad = $entidadRepository->findByCodigo($codigoEntidad);
+        
+        if (!$entidad) {
+            $entidad = new \App\Domains\EntidadesFinancieras\Entities\EntidadFinanciera(
+                $codigoEntidad,
+                'Entidad ' . $codigoEntidad->getValue(),
+                true,
+                null
+            );
+            $entidadRepository->save($entidad);
+        }
+
+        // Crear entidad de dominio
+        $deudor = new \App\Domains\Deudores\Entities\Deudor(
+            $cuit,
+            $codigoEntidad,
+            'préstamo', // tipo_deuda por defecto
+            (float) $deudorData['monto'],
+            $deudorData['situacion'],
+            new \DateTime('now'),
+            null
+        );
+
+        // Guardar en el repositorio
+        $deudorRepository = app(\App\Domains\Deudores\Repositories\DeudorRepositoryInterface::class);
+        $deudorRepository->save($deudor);
+
+        \Log::info('Deudor procesado exitosamente', [
+            'cuit' => $cuit->getValue(),
+            'entidad' => $codigoEntidad->getValue(),
+            'monto' => $deudorData['monto']
+        ]);
     }
 }

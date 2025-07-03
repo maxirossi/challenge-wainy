@@ -6,9 +6,10 @@ echo "⏳ Inicializando recursos en LocalStack..."
 echo "📦 Creando bucket S3..."
 awslocal s3 mb s3://deudores-bcra-bucket
 
-# Crear cola SQS
-echo "📨 Creando cola SQS..."
+# Crear colas SQS
+echo "📨 Creando colas SQS..."
 awslocal sqs create-queue --queue-name deudores-queue
+awslocal sqs create-queue --queue-name deudores-import-queue
 
 # Crear tabla importaciones_bcra
 echo "🗄️  Creando tabla importaciones_bcra..."
@@ -50,7 +51,9 @@ awslocal dynamodb wait table-exists --table-name importaciones_errores
 
 echo "✅ Recursos creados exitosamente:"
 echo "   📦 S3 Bucket: deudores-bcra-bucket"
-echo "   📨 SQS Queue: deudores-queue"
+echo "   📨 SQS Queues:"
+echo "      - deudores-queue"
+echo "      - deudores-import-queue"
 echo "   🗄️  DynamoDB Tables:"
 echo "      - importaciones_bcra"
 echo "      - deudores_bcra (con GSI importacionId-index)"

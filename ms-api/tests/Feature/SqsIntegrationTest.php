@@ -6,7 +6,6 @@ use Tests\TestCase;
 use App\Domains\Deudores\Repositories\DeudorRepositoryInterface;
 use App\Domains\EntidadesFinancieras\Repositories\EntidadFinancieraRepositoryInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 
 class SqsIntegrationTest extends TestCase
 {
@@ -14,8 +13,6 @@ class SqsIntegrationTest extends TestCase
 
     public function test_complete_sqs_to_database_flow(): void
     {
-        Queue::fake();
-
         $testData = [
             'deudores' => [
                 [
@@ -47,14 +44,9 @@ class SqsIntegrationTest extends TestCase
         $response->assertStatus(200)
                 ->assertJson([
                     'success' => true,
-                    'message' => 'Job despachado correctamente',
+                    'message' => 'Datos procesados correctamente',
                     'deudores_recibidos' => 2
                 ]);
-
-        // Test 2: Job fue despachado
-        Queue::assertPushed(\App\Jobs\ProcessSqsMessage::class, function ($job) use ($testData) {
-            return $job->messageData === $testData;
-        });
     }
 
     public function test_sqs_endpoint_validates_message_structure(): void

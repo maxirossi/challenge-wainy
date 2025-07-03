@@ -4,7 +4,7 @@ Este folder contiene un script bash para probar el flujo completo de integració
 
 ## ¿Qué hace el script?
 1. Sube un archivo de prueba a `ms-importer` (`/upload`).
-2. Espera a que el worker procese el mensaje y los datos lleguen a MySQL vía SQS.
+2. Espera a que el PHP listener procese el mensaje y los datos lleguen a MySQL vía SQS.
 3. Consulta la API REST de `ms-api` para verificar que los datos estén disponibles.
 4. Valida que la respuesta contenga un `total_deuda` mayor a 0 para el CUIT de prueba.
 
@@ -14,7 +14,7 @@ Este folder contiene un script bash para probar el flujo completo de integració
    - `ms-importer` (puerto 3000)
    - `ms-api` (puerto 8000)
    - LocalStack y MySQL
-   - El worker de Laravel (`php artisan queue:work` en ms-api)
+   - El PHP listener (`php /var/www/sqs-listener.php` en ms-api)
 2. Coloca el archivo de prueba `test-real-bcra.txt` en el root del proyecto (o ajusta la variable `TEST_FILE` en el script).
 3. Da permisos de ejecución al script:
    ```bash

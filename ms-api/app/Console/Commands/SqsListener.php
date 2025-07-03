@@ -29,7 +29,7 @@ class SqsListener extends Command
     {
         echo "SQS Listener starting...\n";
         
-        $queueName = 'deudores-queue';
+        $queueName = 'deudores-import-queue';
         $timeout = 20;
         
         $this->info("Starting SQS listener for queue: {$queueName}");
@@ -122,6 +122,9 @@ class SqsListener extends Command
             
             // Delete the message from queue
             $this->deleteMessage($sqsClient, $queueUrl, $message['ReceiptHandle']);
+            
+            // Justo después de recibir el mensaje de SQS, agregar:
+            file_put_contents('/tmp/sqs_artisan_listener.log', "Mensaje recibido: " . print_r($message, true) . "\n", FILE_APPEND);
             
         } catch (\Exception $e) {
             $this->error("Error processing message: " . $e->getMessage());

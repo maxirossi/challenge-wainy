@@ -15,9 +15,12 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
+        // Limpiar completamente la tabla users antes de crear el usuario de test
+        \App\Models\User::query()->delete();
+        User::factory()->firstOrCreate([
             'email' => 'test@example.com',
+        ], [
+            'name' => 'Test User',
         ]);
 
         $this->call([

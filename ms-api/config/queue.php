@@ -57,7 +57,7 @@ return [
             'key' => 'test',
             'secret' => 'test',
             'prefix' => 'http://localstack:4566/000000000000',
-            'queue' => 'deudores-queue',
+            'queue' => 'deudores-import-queue',
             'suffix' => null,
             'region' => 'us-east-1',
             'endpoint' => 'http://localstack:4566',
