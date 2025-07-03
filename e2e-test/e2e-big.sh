@@ -20,3 +20,15 @@ curl -s -F "file=@$TEST_FILE" "$IMPORTER_URL" | tee upload_result.json
 echo "Esperando procesamiento (10s)..."
 sleep 10
 
+# 3. Consultar API ms-api por CUIT
+echo "Consultando API ms-api por CUIT $CUIT..."
+curl -s "$API_URL/deudores/$CUIT" | tee result.json
+
+# 4. Validar que la respuesta contiene datos esperados (ejemplo: total_deuda > 0)
+if grep -q '"total_deuda":[1-9][0-9]*' result.json; then
+  echo "✔️  E2E OK: Deudor encontrado y procesado"
+  exit 0
+else
+  echo "❌  E2E FAIL: No se encontró el deudor o no fue procesado"
+  exit 1
+fi 
