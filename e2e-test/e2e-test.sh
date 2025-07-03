@@ -25,7 +25,7 @@ echo "Consultando API ms-api por CUIT $CUIT..."
 curl -s "$API_URL/deudores/$CUIT" | tee result.json
 
 # 4. Validar que la respuesta contiene datos esperados (ejemplo: total_deuda > 0)
-if grep -q '"total_deuda":[1-9]' result.json; then
+if grep -q '"total_deuda":[1-9][0-9]*' result.json; then
   echo "✔️  E2E OK: Deudor encontrado y procesado"
   exit 0
 else
