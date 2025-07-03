@@ -12,6 +12,8 @@ Este proyecto implementa una arquitectura de microservicios completa para proces
 
 🟫 **LocalStack**: servicios AWS simulados: S3, SQS, DynamoDB.
 
+> 📊 **Ver diagramas de arquitectura completos**: [ARCHITECTURE.md](./ARCHITECTURE.md)
+
 ## 🧱 Requisitos
 
 - Docker
