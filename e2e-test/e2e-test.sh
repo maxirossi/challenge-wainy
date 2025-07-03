@@ -5,6 +5,7 @@ set -e
 IMPORTER_URL="http://localhost:3000/upload"
 API_URL="http://localhost:8000/api"
 TEST_FILE="e2e-test/deudores-50mb.txt"
+# test-real-bcra.txt
 CUIT="20-00390552-8"
 
 # Colores para output
