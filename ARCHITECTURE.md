@@ -172,41 +172,7 @@ graph LR
     class Home,Deudores,About,Top,Entidades,Stats page
 ```
 
-### API Laravel
-```mermaid
-graph TB
-    subgraph "API Laravel (ms-api)"
-        DeudoresAPI[👥 /api/deudores]
-        EntidadesAPI[🏦 /api/entidades]
-        StatsAPI[📈 /api/stats]
-        WebhookAPI[🔗 /webhook/notify]
-        
-        DeudoresAPI --> ListAPI[📋 /list?page=1&per_page=20]
-        DeudoresAPI --> SearchAPI[🔍 /{cuit}]
-        DeudoresAPI --> TopAPI[🏆 /top/{n}]
-        EntidadesAPI --> EntityAPI[🏛️ /{codigo}]
-    end
-    
-    classDef endpoint fill:#8b5cf6,stroke:#6d28d9,stroke-width:2px,color:#fff
-    class DeudoresAPI,EntidadesAPI,StatsAPI,WebhookAPI endpoint
-```
 
-### NestJS Importer
-```mermaid
-graph TB
-    subgraph "NestJS Importer (ms-importer)"
-        UploadAPI[📤 /upload]
-        LogsAPI[📊 /logs]
-        
-        LogsAPI --> ImportsLogs[📋 /imports]
-        LogsAPI --> ErrorsLogs[❌ /errors]
-        LogsAPI --> SummaryLogs[📈 /summary]
-        LogsAPI --> SpecificLog[🔍 /imports/{id}]
-    end
-    
-    classDef endpoint fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff
-    class UploadAPI,LogsAPI endpoint
-```
 
 ## 🔧 Configuración de Servicios
 
@@ -229,67 +195,6 @@ graph LR
     
     classDef service fill:#6b7280,stroke:#4b5563,stroke-width:2px,color:#fff
     class MySQL,LocalStack,Importer,API,Frontend service
-```
-
-## 📊 Sistema de Logging
-
-```mermaid
-graph TB
-    subgraph "Sistema de Logging"
-        ImportStart[🚀 Log Import Start]
-        ImportComplete[✅ Log Import Complete]
-        ImportError[❌ Log Import Error]
-        
-        ImportStart --> LogFile[📄 import_{id}_{date}.json]
-        ImportComplete --> LogFile
-        ImportError --> LogFile
-        
-        ImportError --> ErrorFile[📄 errors_{date}.json]
-        
-        LogFile --> LogsAPI[📊 /logs/*]
-        ErrorFile --> LogsAPI
-    end
-    
-    classDef log fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
-    class ImportStart,ImportComplete,ImportError,LogFile,ErrorFile log
-```
-
-## 📊 Sistema de Logging Detallado
-
-```mermaid
-graph TB
-    subgraph "Flujo de Logging"
-        Upload[📤 Upload File] --> StartLog[🚀 Log Import Start]
-        StartLog --> Process[⚙️ Process File]
-        Process --> CompleteLog[✅ Log Import Complete]
-        Process --> ErrorLog[❌ Log Import Error]
-        
-        StartLog --> LogFile[📄 import_{id}_{date}.json]
-        CompleteLog --> LogFile
-        ErrorLog --> LogFile
-        
-        ErrorLog --> ErrorFile[📄 errors_{date}.json]
-        
-        LogFile --> LogsAPI[📊 /logs/*]
-        ErrorFile --> LogsAPI
-    end
-    
-    subgraph "Información Registrada"
-        Metadata[📋 Metadata<br/>ID, timestamp, archivo]
-        Processing[⚡ Processing<br/>Líneas, errores, tiempo]
-        Storage[💾 Storage<br/>S3 key, tamaño]
-        Errors[❌ Errors<br/>Línea, error, contenido]
-    end
-    
-    LogFile --> Metadata
-    LogFile --> Processing
-    LogFile --> Storage
-    ErrorFile --> Errors
-    
-    classDef log fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
-    classDef info fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff
-    class StartLog,CompleteLog,ErrorLog,LogFile,ErrorFile log
-    class Metadata,Processing,Storage,Errors info
 ```
 
 ## 🚀 Tecnologías Utilizadas
