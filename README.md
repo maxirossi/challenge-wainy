@@ -19,6 +19,12 @@ Este proyecto implementa una arquitectura de microservicios completa para proces
 ![alt text](image.png)
 
 ![alt text](image-1.png)
+
+> 📊 **Ver diagramas de arquitectura completos**: [ARCHITECTURE.md](./ARCHITECTURE.md)
+
+Arquitectura general 
+![alt text](image-2.png)
+
 ## 🧱 Requisitos
 
 - Docker
