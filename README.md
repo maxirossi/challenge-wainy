@@ -18,6 +18,7 @@ Este proyecto implementa una arquitectura de microservicios completa para proces
 
 ![alt text](image.png)
 
+![alt text](image-1.png)
 ## 🧱 Requisitos
 
 - Docker
